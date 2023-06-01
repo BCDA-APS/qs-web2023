@@ -11,4 +11,5 @@ Using ReactJS, develop a web client for the bluesky queueserver.
 ## Web Links
 
 - https://github.com/bluesky/bluesky-webclient
-- https://github.com/bluesky/bluesky-queueserver 
+- https://github.com/bluesky/bluesky-queueserver
+- https://blueskyproject.io/bluesky-queueserver/introduction_for_users.html
