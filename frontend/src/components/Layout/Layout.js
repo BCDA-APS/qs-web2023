@@ -59,8 +59,11 @@ function Layout() {
                     <QueueConsole />
                 </Col>
                 <Col xs="6">
-                    <History />
+                    Hey
                 </Col>
+            </Row>
+            <Row>
+                <History />
             </Row>
             <Row>
                 <Col>
