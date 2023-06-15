@@ -16,11 +16,14 @@ function Devices() {
         (async () => {
             const value = await axios.get('http://localhost:3001/devices/allowed');
             if (value.status === 200) {
-                setDevices(value.data?.devices);
-                //console.log("stuff: ", value.data?.devices);
-                const propertyNames = Object.keys(value.data?.devices);
-                setNames(propertyNames);
-                //console.log("proper: ", propertyNames);
+                if (value.data.devices.success) {
+                    setDevices(value.data?.devices.devices_allowed);
+                    //console.log("stuff: ", value.data?.devices);
+                    const propertyNames = Object.keys(value.data?.devices.devices_allowed);
+                    setNames(propertyNames);
+                    //console.log("proper: ", propertyNames);
+                }
+                
             }
             //console.log("value: ", value);
         })();

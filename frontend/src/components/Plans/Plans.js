@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Card,
     CardBody,
@@ -11,16 +11,41 @@ import {
     NavLink,
     NavItem,
     TabContent,
-    TabPane
+    TabPane,
+    FormGroup,
 } from 'reactstrap';
+import Select from 'react-select';
+import axios from 'axios';
 
 function Plans() {
     const [ tab, setTab ] = useState('viewer');
+    const [plansAllowed, setPlansAllowed] = useState({});
+    const [planNames, setPlanName] = useState([]);
+    const [planInstruction, setPlanInstruction] = useState(null);
     const toggleTabs = (newTab) => {
         if (tab !== newTab) {
             setTab(newTab);
         }
     }
+
+    useEffect(() => {
+        (async () => {
+            const value = await axios.get('http://localhost:3001/plans');
+            if (value.status === 200) {
+                if (value.data.plans.success) {
+                    setPlansAllowed(value.data.plans.plans_allowed);
+                    //console.log("stuff: ", value.data.plans);
+                    const propertyNames = Object.keys(value.data.plans.plans_allowed);
+                    setPlanName(propertyNames);
+                }
+                
+                //const propertyNames = Object.keys(value.data?.devices);
+                //setNames(propertyNames);
+                //console.log("proper: ", propertyNames);
+            }
+            //console.log("value: ", value);
+        })();
+    }, []);
 
     return (
         <div>
@@ -66,7 +91,32 @@ function Plans() {
                 <TabPane tabId={'editor'}>
                     <Card>
                         <CardBody>
-                            Editor
+                        <FormGroup check>
+                            <Input
+                                name="plan1"
+                                type="radio"
+                                id={'plan'}
+                                onChange={(e) => setPlanInstruction(e.target.id)}
+                            />
+                            {' '}
+                            <Label check>
+                                Plan
+                            </Label>
+                        </FormGroup>
+                        <FormGroup check>
+                            <Input
+                                name="plan1"
+                                type="radio"
+                                id={'instruction'}
+                            />
+                            {' '}
+                            <Label check>
+                                Instruction
+                            </Label>
+                        </FormGroup>
+                            <Select
+                                
+                            />
                         </CardBody>
                     </Card>
                 </TabPane>

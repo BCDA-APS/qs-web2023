@@ -14,6 +14,7 @@ import Queue from '../Queue/Queue';
 import History from '../History/History';
 import QueueConsole from '../QueueConsole/QueueConsole';
 import Plans from '../Plans/Plans';
+import Status from '../Status/Status';
 
 function Layout() {
     return (
@@ -48,7 +49,7 @@ function Layout() {
     </Row>*/}
             <Row>
                 <Col xs="6">
-                    <Plans />
+                    hey
                 </Col>
                 <Col xs="6">
                     <RunningPlan />
@@ -61,6 +62,15 @@ function Layout() {
                 <Col xs="6">
                     Hey
                 </Col>
+            </Row>
+            <Row>
+                <Environment />
+            </Row>
+            <Row>
+                <Status />
+            </Row>
+            <Row>
+                <Plans />
             </Row>
             <Row>
                 <History />

@@ -18,13 +18,16 @@ function History() {
         (async () => {
             const value = await axios.get('http://localhost:3001/history');
             if (value.status === 200) {
-                setHistory(value.data.history);
-                console.log("stuff: ", value.data);
+                if (value.data.history.success) {
+                    setHistory(value.data.history.items);
+                }
+                
+                //console.log("stuff: ", value.data);
                 //const propertyNames = Object.keys(value.data?.devices);
                 //setNames(propertyNames);
                 //console.log("proper: ", propertyNames);
             }
-            console.log("value: ", value);
+            //console.log("value: ", value);
         })();
     }, []);
 
@@ -85,7 +88,7 @@ function History() {
                                             onClick={() => setCurrentPlan(item)} 
                                             key={item.item_uid}
                                             /*style={item.item_uid === currentPlan.item_uid ? {border: '1px solid black', borderTop: '1px solid black'} : null}*/
-                                            class={item.item_uid === currentPlan.item_uid ? "table-primary" : ''}
+                                            className={item.item_uid === currentPlan.item_uid ? "table-primary" : ''}
                                         >
                                             <th>
                                                 {index + 1}

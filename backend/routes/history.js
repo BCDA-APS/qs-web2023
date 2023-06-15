@@ -7,7 +7,7 @@ router.get("/", async (req, res, next) => {
         let val = null;
         const value = await axios.get("http://otz.xray.aps.anl.gov:60610/api/history/get");
         if (value.status === 200) {
-            val = value.data.items;
+            val = value.data;
         }
         console.log("value: ", value);
         return res.status(200).json({ history: val })

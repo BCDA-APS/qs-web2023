@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Card,
     CardBody,
@@ -8,8 +8,24 @@ import {
     Col,
     Label
 } from 'reactstrap';
+import axios from 'axios';
 
 function ConsoleOutput() {
+    const [console, setConsole ] = useState("");
+    useEffect(() => {
+        (async () => {
+            const value = await axios.get('http://localhost:3001/console');
+            if (value.status === 200) {
+                if (value.data.console.success) {
+                    setConsole(value.data?.console.text);
+                }
+                
+            }
+            //console.log("value: ", value);
+        })();
+        
+    }, []);
+
     return (
         <div>
             <Card body>
@@ -33,7 +49,7 @@ function ConsoleOutput() {
                                 size={'sm'}
                                 />
                             </div>
-                            <Button>
+                            <Button onClick={() => setConsole("")}>
                             Clear
                             </Button>
                         </div>
@@ -43,6 +59,7 @@ function ConsoleOutput() {
                             <Input
                                 type='textarea'
                                 readOnly={true}
+                                value={console}
                             />
                         </Col>
                     </Row>
