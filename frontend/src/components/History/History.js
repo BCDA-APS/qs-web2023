@@ -45,6 +45,17 @@ function History() {
         })
     };
 
+    const clearHistory = async () => {
+        try {
+          const url = 'http://localhost:3001/history/clear';
+      
+          const response = await axios.post(url);
+          console.log(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+    };
+
     return (
         <div>
             <Card>
@@ -55,7 +66,7 @@ function History() {
                         </p>
                         <Button>Copy to Queue</Button>
                         <Button onClick={() => setCurrentPlan({})}>Deselect All</Button>
-                        <Button>Clear All</Button>
+                        <Button onClick={clearHistory}>Clear History</Button>
                     </div>
                     <Row>
                         <Table hover>

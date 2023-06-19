@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
     Card,
     CardBody,
@@ -11,7 +11,7 @@ import {
 import axios from 'axios';
 
 function ConsoleOutput() {
-    const [console, setConsole ] = useState("");
+    const [consoleInfo, setConsole ] = useState("");
     useEffect(() => {
         (async () => {
             const value = await axios.get('http://localhost:3001/console');
@@ -21,9 +21,12 @@ function ConsoleOutput() {
                 }
                 
             }
-            //console.log("value: ", value);
         })();
-        
+        /*
+        if (textareaRef.current) {
+            textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+            console.log("info: ", textareaRef.current.scrollHeight);
+          }*/
     }, []);
 
     return (
@@ -59,7 +62,7 @@ function ConsoleOutput() {
                             <Input
                                 type='textarea'
                                 readOnly={true}
-                                value={console}
+                                value={consoleInfo}
                             />
                         </Col>
                     </Row>
