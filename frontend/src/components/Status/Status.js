@@ -7,7 +7,9 @@ import {
     Row,
     Col,
     Label,
-    Table
+    Table,
+    CardHeader,
+    CardTitle
 } from 'reactstrap';
 import axios from 'axios';
 
@@ -25,8 +27,11 @@ function Status() {
 
  
     return (
-        <div>
-            <Card>
+        <div style={{ margin: '10px'}}>
+            <Card style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                <CardHeader style={{ background: 'unset', border: 'unset', textAlign: 'center'}} tag='h5'>
+                    Status
+                </CardHeader>
                 <CardBody>
                     <Row>
                         <Col

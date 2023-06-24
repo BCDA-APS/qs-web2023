@@ -44,9 +44,9 @@ function Environment() {
         <div>
             <Card>
                 <CardBody style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                    <Row>
+                    <h5>
                         Environment
-                    </Row>
+                    </h5>
                     <Row style={{ width: '200px', margin: '5px'}}>
                         <Button onClick={openEnvironment}>Open</Button>
                     </Row>

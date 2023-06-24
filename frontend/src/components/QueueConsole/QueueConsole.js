@@ -10,9 +10,13 @@ import {
     Table
 } from 'reactstrap';
 import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
 import EditQueueModal from '../EditQueueModal/EditQueueModal';
+import { getQueue } from '../../redux/serverSlice';
+import QueueItem from '../QueueItem/QueueItem';
 
 function QueueConsole() {
+    const dispatch = useDispatch();
     const [queue, setQueue] = useState([]);
     const [currentPlan, setCurrentPlan] = useState(null);
     useEffect(() => {
@@ -22,7 +26,7 @@ function QueueConsole() {
                 if (value.data.queue.success) {
                     setQueue(value.data.queue.items);
                 }
-                
+                dispatch(getQueue());
                 //console.log("stuff: ", value.data);
                 //const propertyNames = Object.keys(value.data?.devices);
                 //setNames(propertyNames);
@@ -102,6 +106,29 @@ function QueueConsole() {
                         <Button size='sm' disabled={currentPlan === null}>Duplicate</Button>
                     </div>
                     <Row>
+                        <Col>
+                            Name
+                        </Col>
+                        <Col>
+                            Name
+                        </Col>
+                        <Col>
+                            Name
+                        </Col>
+                        <Col>
+                            Name
+                        </Col>
+                    </Row>
+                    <Row style={{ maxHeight: '500px', overflowY: 'scroll'}}>
+                    {
+                        queue?.map((item, index) => {
+                            return (
+                                    <QueueItem item={item} index={index}/>       
+                            )
+                        })
+                    }
+                    </Row>
+                    <Row>
                         <Table hover>
                             <thead>
                                 <tr>
@@ -131,10 +158,10 @@ function QueueConsole() {
                                             <tr 
                                                 onClick={() => setCurrentPlan({item, index})} 
                                                 key={item.item_uid}
-                                                /*style={item.item_uid === currentPlan.item_uid ? {border: '1px solid black', borderTop: '1px solid black'} : null}*/
+                                                
                                                 className={item.item_uid === currentPlan?.item.item_uid ? "table-primary" : ''}
                                             >
-                                                <th>
+                                                {/*<th>
                                                     {index + 1}
                                                 </th>
                                                 <th>
@@ -151,14 +178,19 @@ function QueueConsole() {
                                                 </th>
                                                 <th>
                                                     <EditQueueModal item={item}/>
-                                                </th>
+                                        </th>*/}
+                                        <Card>
+                                            <CardBody>
+                                                Hey
+                                            </CardBody>
+                                        </Card>
                                             </tr>
                                         )
                                     })
                                 }
                             </tbody>
                         </Table>
-                    </Row>
+                            </Row>
                 </CardBody>
             </Card>
         </div>

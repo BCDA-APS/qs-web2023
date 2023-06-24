@@ -4,7 +4,8 @@ import {
     Row,
     Card,
     CardBody,
-    Col
+    Col,
+    CardHeader
 } from 'reactstrap';
 import axios from 'axios';
 
@@ -71,19 +72,18 @@ function PlanExecution() {
     return (
         <div>
             <Card>
-                <CardBody style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                    <Row>Plan Execution</Row>
+                <CardHeader style={{ textAlign: 'center'}}>
+                    Plan Execution
+                </CardHeader>
+                <CardBody>
+                    <div style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between'}}>
+                        <Button onClick={() => pausePlan("deferred")}>Pause: Deferred</Button>
+                        <Button onClick={() => pausePlan("immediate")}>Pause: Immediate</Button>
+                    </div>
                     <Row>
                         <Col>
-                            <Button onClick={() => pausePlan("deferred")}>Pause: Deferred</Button>
+                            <Button onClick={resumePlan}>Resume</Button>
                         </Col>
-                        <Col>
-                            <Button onClick={() => pausePlan("immediate")}>Pause: Immediate</Button>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Button onClick={stopManager}>Stop MAnager</Button>
-                        <Button onClick={resumePlan}>Resume</Button>
                     </Row>
                     <Row>
                         <Col>

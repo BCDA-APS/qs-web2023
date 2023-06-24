@@ -16,6 +16,9 @@ import {
 } from 'reactstrap';
 import Select from 'react-select';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import ServerCalls from '../../redux/serverCalls';
+import { getPlans } from '../../redux/serverSlice';
 
 function Plans() {
     const [ tab, setTab ] = useState('viewer');
@@ -27,11 +30,15 @@ function Plans() {
             setTab(newTab);
         }
     }
+    const dispatch = useDispatch();
 
     useEffect(() => {
         (async () => {
-            const value = await axios.get('http://localhost:3001/plans');
-            if (value.status === 200) {
+            dispatch(getPlans());
+            //const { data, error } = await ServerCalls.getPlans();
+            //console.log("data: ", data);
+            //const value = await axios.get('http://localhost:3001/plans');
+            /*if (value.status === 200) {
                 if (value.data.plans.success) {
                     setPlansAllowed(value.data.plans.plans_allowed);
                     //console.log("stuff: ", value.data.plans);
@@ -42,7 +49,7 @@ function Plans() {
                 //const propertyNames = Object.keys(value.data?.devices);
                 //setNames(propertyNames);
                 //console.log("proper: ", propertyNames);
-            }
+            }*/
             //console.log("value: ", value);
         })();
     }, []);
