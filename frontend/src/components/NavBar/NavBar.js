@@ -23,7 +23,16 @@ function NavBar({children}) {
   return (
     <div>
       <Navbar color={'light'} className="d-flex justify-content-between align-items-center">
-        <NavbarText>LOGO</NavbarText> 
+        <NavbarBrand>
+        <img
+          alt="logo"
+          src={`https://blueskyproject.io/_assets/bluesky-logo-dark.svg`}
+          style={{
+            height: 50,
+            width: 100
+          }}
+        />
+      </NavbarBrand>
         <NavbarText style={{ textAlign: 'center'}}>BlueSky Queue Monitor</NavbarText>
         <SideBar />
       </Navbar>

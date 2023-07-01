@@ -17,24 +17,27 @@ import QueueItem from '../QueueItem/QueueItem';
 
 function QueueConsole() {
     const dispatch = useDispatch();
-    const [queue, setQueue] = useState([]);
+    const [queueInfo, setQueue] = useState([]);
     const [currentPlan, setCurrentPlan] = useState(null);
+    const { queue } = useSelector(state => state.server);
+    const [ refresh, setRefresh] = useState(false);
     useEffect(() => {
+        dispatch(getQueue());
+        /*
         (async () => {
             const value = await axios.get('http://localhost:3001/queue');
             if (value.status === 200) {
                 if (value.data.queue.success) {
                     setQueue(value.data.queue.items);
                 }
-                dispatch(getQueue());
                 //console.log("stuff: ", value.data);
                 //const propertyNames = Object.keys(value.data?.devices);
                 //setNames(propertyNames);
                 //console.log("proper: ", propertyNames);
             }
             //console.log("value: ", value);
-        })();
-    }, []);
+        })();*/
+    }, [refresh]);
 
     const clearQueue = async () => {
         try {
@@ -42,6 +45,7 @@ function QueueConsole() {
       
           const response = await axios.post(url);
           console.log(response.data);
+          setRefresh(!refresh);
         } catch (error) {
           console.error(error);
         }
@@ -56,6 +60,8 @@ function QueueConsole() {
       
           const response = await axios.post(url, requestData);
           console.log(response.data);
+          setCurrentPlan(null);
+          setRefresh(!refresh);
         } catch (error) {
           console.error(error);
         }
@@ -82,6 +88,8 @@ function QueueConsole() {
         
             const response = await axios.post(url, payload);
             console.log(response.data);
+            setRefresh(!refresh);
+            setCurrentPlan(null);
         } catch (error) {
           console.error(error);
         }
@@ -89,46 +97,21 @@ function QueueConsole() {
 
     return (
         <div>
-            <Card>
+            <Card className='shadow' body style={{ height: '650px'}}>
                 <CardBody>
+                    <h3 style={{ textAlign: 'center'}}>Queue</h3>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', marginBottom: '10px'}}>
-                        <p>
-                            Queue
-                        </p>
                         <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === 0 ? true : false} onClick={() => moveQueueItem(currentPlan, 'UP')}>Up</Button>
-                        <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === (queue.length - 1) ? true : false} onClick={() => moveQueueItem(currentPlan, 'DOWN')}>Down</Button>
+                        <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === (queue?.queue?.items?.length - 1) ? true : false} onClick={() => moveQueueItem(currentPlan, 'DOWN')}>Down</Button>
                         <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === 0 ? true : false} onClick={() => moveQueueItem(currentPlan, 'TOP')}>Top</Button>
-                        <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === (queue.length - 1) ? true : false} onClick={() => moveQueueItem(currentPlan, 'BOTTOM')}>Bottom</Button>
+                        <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === (queue?.queue?.items?.length - 1) ? true : false} onClick={() => moveQueueItem(currentPlan, 'BOTTOM')}>Bottom</Button>
                         <Button size='sm' disabled={currentPlan === null} onClick={() => setCurrentPlan(null)}>Deselect</Button>
                         <Button size='sm' onClick={clearQueue}>Clear</Button>
                         <Button size='sm' onClick={() => console.log("currentPlan: ", currentPlan)}>Loop</Button>
                         <Button size='sm' disabled={currentPlan === null} onClick={() => removeQueueItem(currentPlan?.item.item_uid)}>Delete</Button>
                         <Button size='sm' disabled={currentPlan === null}>Duplicate</Button>
                     </div>
-                    <Row>
-                        <Col>
-                            Name
-                        </Col>
-                        <Col>
-                            Name
-                        </Col>
-                        <Col>
-                            Name
-                        </Col>
-                        <Col>
-                            Name
-                        </Col>
-                    </Row>
                     <Row style={{ maxHeight: '500px', overflowY: 'scroll'}}>
-                    {
-                        queue?.map((item, index) => {
-                            return (
-                                    <QueueItem item={item} index={index}/>       
-                            )
-                        })
-                    }
-                    </Row>
-                    <Row>
                         <Table hover>
                             <thead>
                                 <tr>
@@ -153,7 +136,7 @@ function QueueConsole() {
                             </thead>
                             <tbody>
                                 {
-                                    queue?.map((item, index) => {
+                                    queue?.queue?.items?.map((item, index) => {
                                         return (
                                             <tr 
                                                 onClick={() => setCurrentPlan({item, index})} 
@@ -161,7 +144,7 @@ function QueueConsole() {
                                                 
                                                 className={item.item_uid === currentPlan?.item.item_uid ? "table-primary" : ''}
                                             >
-                                                {/*<th>
+                                                <th>
                                                     {index + 1}
                                                 </th>
                                                 <th>
@@ -178,12 +161,8 @@ function QueueConsole() {
                                                 </th>
                                                 <th>
                                                     <EditQueueModal item={item}/>
-                                        </th>*/}
-                                        <Card>
-                                            <CardBody>
-                                                Hey
-                                            </CardBody>
-                                        </Card>
+                                        </th>
+                        
                                             </tr>
                                         )
                                     })

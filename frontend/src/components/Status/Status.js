@@ -27,8 +27,8 @@ function Status() {
 
  
     return (
-        <div style={{ margin: '10px'}}>
-            <Card style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+        <div>
+            <Card style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center'}} className='shadow' body>
                 <CardHeader style={{ background: 'unset', border: 'unset', textAlign: 'center'}} tag='h5'>
                     Status
                 </CardHeader>

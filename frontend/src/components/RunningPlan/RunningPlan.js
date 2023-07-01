@@ -10,14 +10,16 @@ import {
 } from 'reactstrap';
 
 function RunningPlan() {
+    //dont update the running plan if queue is running if the rm is idle
+    //include a configuration modal in sidebar to ask user to customize the amount of seconds to check for new information
     return (
         <div>
-            <Card>
+            <Card body className='shadow' style={{ minHeight: '300px'}}>
                 <CardBody>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
-                        <p>
+                        <h5>
                             Running Plan
-                        </p>
+                        </h5>
                         <Button>Copy to Queue</Button>
                     </div>
                     <Row>

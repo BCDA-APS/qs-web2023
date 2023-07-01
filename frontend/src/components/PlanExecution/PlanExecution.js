@@ -71,29 +71,32 @@ function PlanExecution() {
     }
     return (
         <div>
-            <Card>
-                <CardHeader style={{ textAlign: 'center'}}>
-                    Plan Execution
-                </CardHeader>
+            <Card className='shadow' body>
                 <CardBody>
-                    <div style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between'}}>
-                        <Button onClick={() => pausePlan("deferred")}>Pause: Deferred</Button>
-                        <Button onClick={() => pausePlan("immediate")}>Pause: Immediate</Button>
-                    </div>
-                    <Row>
+                        <h5 style={{ textAlign: 'center'}}>Plan Execution</h5>
+                    <Row style={{ margin: '10px'}}>
                         <Col>
-                            <Button onClick={resumePlan}>Resume</Button>
+                            <Button onClick={() => pausePlan("deferred")} style={{width: '100%'}}>Pause: Deferred</Button>
+                        </Col>
+                        <Col>
+                            <Button onClick={() => pausePlan("immediate")} style={{width: '100%'}}>Pause: Immediate</Button>
                         </Col>
                     </Row>
-                    <Row>
+                    
+                    <Row style={{ margin: '10px'}}>
                         <Col>
-                            <Button onClick={stopPlan}>Stop</Button>
+                            <Button onClick={resumePlan} style={{width: '100%'}}>Resume</Button>
+                        </Col>
+                    </Row>
+                    <Row style={{ margin: '10px'}}>
+                        <Col>
+                            <Button onClick={stopPlan} style={{width: '100%'}}>Stop</Button>
                         </Col>
                         <Col>
-                            <Button onClick={abortPlan}>Abort</Button>
+                            <Button onClick={abortPlan} style={{width: '100%'}}>Abort</Button>
                         </Col>
                         <Col>
-                            <Button onClick={haltPlan}>Halt</Button>
+                            <Button onClick={haltPlan} style={{width: '100%'}}>Halt</Button>
                         </Col>
                     </Row>
                 </CardBody>

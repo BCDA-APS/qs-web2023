@@ -3,7 +3,8 @@ import {
     Button,
     Row,
     Card,
-    CardBody
+    CardBody,
+    Col
 } from 'reactstrap';
 import axios from 'axios';
 
@@ -41,23 +42,31 @@ function Queue() {
 
     return (
         <div>
-            <Card>
+            <Card className='shadow'>
                 <CardBody style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                    <Row>
+                    <h5>
                         Queue
+                    </h5>
+                    <Row>
+                        <Col>
+                            <Button onClick={startQueue}>Start</Button>
+                        </Col>
+                        <Col>
+                            <Button onClick={stopQueue}>Stop</Button>
+                        </Col>
+                        <Col>
+                            <Button onClick={cancelQueue}>Cancel</Button>
+                        </Col>
                     </Row>
-                    <Row style={{ width: '200px', margin: '5px'}}>
-                        Status
-                    </Row>
-                    <Row style={{ width: '200px', margin: '5px'}}>
+                    {/*<Row style={{ width: '100px', margin: '5px'}}>
                         <Button onClick={startQueue}>Start</Button>
                     </Row>
-                    <Row style={{ width: '200px', margin: '5px'}}>
+                    <Row style={{ width: '100px', margin: '5px'}}>
                         <Button onClick={stopQueue}>Stop</Button>
                     </Row>
-                    <Row style={{ width: '200px', margin: '5px'}}>
+                    <Row style={{ width: '100px', margin: '5px'}}>
                         <Button onClick={cancelQueue}>Cancel</Button>
-                    </Row>
+    </Row>*/}
                 </CardBody>
             </Card>
         </div>

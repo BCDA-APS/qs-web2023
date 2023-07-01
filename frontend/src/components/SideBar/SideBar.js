@@ -7,19 +7,24 @@ import {
 } from 'reactstrap';
 import Environment from '../Environment/Environment';
 import { useDispatch, useSelector } from 'react-redux';
-import { getDevices } from '../../redux/serverSlice';
+import { getDevices, getPlans } from '../../redux/serverSlice';
 import Devices from '../Devices/Devices';
+import AddPlanModal from '../AddPlanModal/AddPlanModal';
 
 function SideBar() {
     const dispatch = useDispatch();
     const [sidebar, setSideBar] = useState(false);
     const toggle = () => setSideBar(!sidebar);
-    const { devices } = useSelector(state => state.server);
+    const { devices, plans } = useSelector(state => state.server);
     
     useEffect(() => {
         if (devices.length === 0) {
             //Checks to see if the devices state in redux is empty, if it is then we call the function to populate state with devices data
             dispatch(getDevices());
+        }
+
+        if (plans.length === 0) {
+            dispatch(getPlans());
         }
     }, []);
     return (
@@ -43,6 +48,8 @@ function SideBar() {
                     <Environment />
                     
                     <Devices />
+
+                    <AddPlanModal />
                 </OffcanvasBody>
             </Offcanvas>
         </div>

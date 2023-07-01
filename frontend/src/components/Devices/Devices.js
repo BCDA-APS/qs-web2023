@@ -21,11 +21,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getDevices } from '../../redux/serverSlice';
 
 function Devices() {
+    //When selecting a dectetor have a multi select where users can select one or more dectors from the list of devices
+    //parse it into the list
     const dispatch = useDispatch(); 
     const [ deviceNameList, setDeviceNameList ] = useState([]);
     const [modal, setModal] = useState(false);
     const toggle = () => setModal(!modal);
-    const { devices } = useSelector(state => state.server)
+    const { devices } = useSelector(state => state.server);
+    //add modules and classname
     //Inlcude check marks and red x's to symbolize the true and false, add a search section to search for names
     useEffect(() => {
         if (devices.length === 0) {
@@ -41,23 +44,20 @@ function Devices() {
             }
         }
     }, []);
-
+    //Inlcude a section in filter to list devices that are readable and that arent
     return (
         <div>
-            <Card>
+            <Card style={{ marginBottom: '10px'}} className='shadow'>
                 <CardBody style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                    <h5>
-                        Devices
-                    </h5>
                     <Button onClick={toggle}>
-                        View List of Devices
+                        View Available Devices
                     </Button>
                 </CardBody>
             </Card>
             <Modal isOpen={modal} toggle={toggle} size={'xl'}>
-                <ModalHeader toggle={toggle}>List of Devices</ModalHeader>
+                <ModalHeader toggle={toggle}>Devices</ModalHeader>
                 <ModalBody>
-                    <Card style={{ border: 'unset', marginBottom: '20px'}}>
+                    <Card style={{ marginBottom: '20px'}} className='shadow' body>
                         <CardBody>
                             <Label>
                                 <strong>
@@ -75,13 +75,19 @@ function Devices() {
     </InputGroup>*/}
                         </CardBody>
                     </Card>
-                    <Card style={{ border: 'unset'}}>
+                    <Card className='shadow' body>
                         <CardBody style={{ maxHeight: '500px', overflowY: 'scroll', height: '100%'}}>
                         <Table striped>
                             <thead>
                                 <tr style={{ textAlign: 'center'}}>
                                     <th>
                                         Name
+                                    </th>
+                                    <th>
+                                        Class Name
+                                    </th>
+                                    <th>
+                                        Module
                                     </th>
                                     <th>
                                         is_flyable
@@ -105,6 +111,12 @@ function Devices() {
                                                 
                                             </td>
                                             <td>
+                                                {devices?.devices?.devices_allowed[item]?.classname}
+                                            </td>
+                                            <td>
+                                                {devices?.devices?.devices_allowed[item]?.module}
+                                            </td>
+                                            <td>
                                                 {devices?.devices?.devices_allowed[item]?.is_flyable? <Check color={'green'}/> : <X color={'red'}/>}
                                             </td>
                                             <td>
@@ -121,11 +133,6 @@ function Devices() {
                         </CardBody>
                     </Card>
                 </ModalBody>
-                <ModalFooter>
-                <Button color="secondary" onClick={toggle}>
-                    Close
-                </Button>
-                </ModalFooter>
             </Modal>
     </div>
     );

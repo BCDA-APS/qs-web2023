@@ -31,7 +31,7 @@ function ConsoleOutput() {
 
     return (
         <div>
-            <Card body>
+            <Card body className='shadow'>
                 <CardBody>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
                         <div>

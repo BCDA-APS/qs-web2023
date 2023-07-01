@@ -65,13 +65,13 @@ function EditQueueModal(props) {
             <Button color="primary" onClick={toggle}>
                 Edit
             </Button>
-            <Modal isOpen={modal} toggle={toggle}>
-                <ModalHeader toggle={toggle}>Edit Plan</ModalHeader>
+            <Modal isOpen={modal} toggle={toggle} size='lg'>
+                <ModalHeader style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>Edit Plan</ModalHeader>
                 <ModalBody>
-                    <h5>Description: {plan?.description}</h5>
-                    <Button onClick={() => {console.log("obj: ", check); console.log("para: ", parameters);}}>Click</Button>
-                    <Table dark>
-                            <thead>
+                    <p style={{ textAlign: 'center'}}><strong>Description:</strong> {plan?.description}</p>
+                    {/* <Button onClick={() => {console.log("obj: ", check); console.log("para: ", parameters);}}>Click</Button> */}
+                    <Table striped>
+                            <thead style={{ textAlign: 'center'}}>
                                 <tr>
                                     <th>
                                         Parameter
@@ -120,9 +120,6 @@ function EditQueueModal(props) {
                 <ModalFooter style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                     <Button color="primary" onClick={toggle}>
                         Save
-                    </Button>
-                    <Button>
-                        Reset Changes
                     </Button>
                     <Button color="secondary" onClick={toggle}>
                         Cancel

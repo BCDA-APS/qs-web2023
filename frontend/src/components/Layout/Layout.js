@@ -16,36 +16,57 @@ import Status from '../Status/Status';
 import PlanExecution from '../PlanExecution/PlanExecution';
 
 function Layout() {
-    const [modal, setModal] = useState(false);
+    // TODO: , FIXME: design idea: change the text in the queue buttons to shorten section, maybe add the section ontop of 
+    //something else and add the running plan on the top bar
     return (
         <div>
             {/*<Row>
-                <Status />
-            </Row>
-            <Row>
                 <Col>
-                    <Queue />
+                    <Row>
+                        <Col>
+                            <Status />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <Queue />
+                        </Col>
+                        <Col>
+                            <PlanExecution />
+                        </Col>
+                    </Row>
                 </Col>
                 <Col>
+                    <RunningPlan />
+                </Col>
+    </Row>*/}
+            <Row style={{ margin: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                <Col>
+                <Row>
+                <Queue />
+                </Row>
+                    <Row>
                     <PlanExecution />
+                    </Row>
+                    
+                    
                 </Col>
-            </Row>
-            <Row>
-                
+                <Col>
+                    <Status />
+                </Col>
                 <Col>
                     <RunningPlan />
                 </Col>
             </Row>
-            
-            <Row>
-                <Col>
+            <Row style={{ margin: '10px'}}>
+                <Col sm="6">
                     <QueueConsole />
                 </Col>
-                <Col>
+                <Col sm="6">
                     <History />
                 </Col>
-    </Row>*/}
-            <Row>
+            </Row>
+            <Row style={{ margin: '10px'}}>
                 <ConsoleOutput />
             </Row>
         </div>

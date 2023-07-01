@@ -104,4 +104,19 @@ router.post("/cancel", async (req, res, next) => {
     }
 })
 
+router.post("/add", async (req, res, next) => {
+    try {
+        console.log("req: ", req.body);
+        
+        let val = null;
+        const value = await axios.post("http://otz.xray.aps.anl.gov:60610/api/queue/item/add", req.body);
+       /* if (value.status === 200) {
+            val = value.data;
+        }*/
+        console.log("value: ", value);
+        return res.status(200).json({ queue: value?.data })
+    } catch(error) {
+        next(error)
+    }
+})
 module.exports = router;

@@ -42,7 +42,7 @@ function Environment() {
     };
     return (
         <div>
-            <Card>
+            <Card style={{ marginBottom: '10px'}} className='shadow'>
                 <CardBody style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
                     <h5>
                         Environment
