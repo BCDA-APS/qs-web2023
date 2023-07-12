@@ -5,16 +5,22 @@ import {
     ModalBody,
     ModalHeader,
     ModalFooter,
-    Rol,
+    Row,
     Col,
     Table,
     FormGroup, 
     Input
 } from 'reactstrap';
 import axios from 'axios';
+import Select from 'react-select';
+import { useDispatch, useSelector } from 'react-redux';
+import { getPlans, getDevices, getQueue } from '../../redux/serverSlice';
 
 function EditQueueModal(props) {
+    //TODO: NEED TO DO ERROR TO DISTINGUISH BETWEEN STR AND INT
+    console.log("props")
     const [modal, setModal] = useState(false);
+    
     const [item, setItem] = useState(props.item);
     const [parameters, setParameters] = useState(props.item?.kwargs);
     const [check, setCheck] = useState({});
@@ -71,7 +77,7 @@ function EditQueueModal(props) {
                     <p style={{ textAlign: 'center'}}><strong>Description:</strong> {plan?.description}</p>
                     {/* <Button onClick={() => {console.log("obj: ", check); console.log("para: ", parameters);}}>Click</Button> */}
                     <Table striped>
-                            <thead style={{ textAlign: 'center'}}>
+                            <thead>
                                 <tr>
                                     <th>
                                         Parameter

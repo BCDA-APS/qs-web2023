@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getDevices, getPlans } from '../../redux/serverSlice';
 import Devices from '../Devices/Devices';
 import AddPlanModal from '../AddPlanModal/AddPlanModal';
+import ConfigurationModal from '../ConfigurationModal/ConfigurationModal';
 
 function SideBar() {
     const dispatch = useDispatch();
@@ -50,6 +51,8 @@ function SideBar() {
                     <Devices />
 
                     <AddPlanModal />
+                    
+                    <ConfigurationModal />
                 </OffcanvasBody>
             </Offcanvas>
         </div>

@@ -28,7 +28,7 @@ function NavBar({children}) {
           alt="logo"
           src={`https://blueskyproject.io/_assets/bluesky-logo-dark.svg`}
           style={{
-            height: 50,
+            height: 25,
             width: 100
           }}
         />

@@ -6,8 +6,13 @@ import {
     CardBody
 } from 'reactstrap';
 import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { getStatus } from '../../redux/serverSlice';
 
 function Environment() {
+    const { status } = useSelector(state => state.server);
+    
+
     const openEnvironment = async () => {
         try {
           const url = 'http://localhost:3001/environment/open';

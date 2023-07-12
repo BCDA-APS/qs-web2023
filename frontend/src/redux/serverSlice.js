@@ -14,7 +14,10 @@ export const getDevices = createAsyncThunk('getDevices', async () => {
     if (error) {
       throw new Error('Failed to fetch devices'); // Throw an error if the request fails
     }
-    return data;
+    console.log("data:" , data);
+    const newValue = Object.entries(data.devices.devices_allowed).map(([name, obj]) => ({ name, ...obj }));
+
+    return {...data, deviceList: newValue};
 });
 
 export const getStatus = createAsyncThunk('getStatus', async () => {
@@ -33,6 +36,13 @@ export const getConsole = createAsyncThunk('getConsole', async () => {
     return data;
 });
 
+export const getConsoleOutputUID = createAsyncThunk('getConsoleOutputUID', async () => {
+    const { data, error } = await ServerCalls.getConsoleOutputUID();
+    if (error) {
+      throw new Error('Failed to fetch console uid'); // Throw an error if the request fails
+    }
+    return data;
+});
 
 export const getQueue = createAsyncThunk('getQueue', async () => {
     const { data, error } = await ServerCalls.getQueue();
@@ -56,7 +66,7 @@ export const serverSlice = createSlice({
         plans: [],
         devices: [],
         queue: [],
-        console: {},
+        consoleOutput: {},
         status: {},
         history: [],
     },
@@ -69,7 +79,7 @@ export const serverSlice = createSlice({
             state.devices = action.payload;
         });
         builder.addCase(getConsole.fulfilled, (state, action) => {
-            state.console = action.payload;
+            state.consoleOutput = action.payload;
         });
         builder.addCase(getStatus.fulfilled, (state, action) => {
             state.status = action.payload;

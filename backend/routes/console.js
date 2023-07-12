@@ -9,12 +9,12 @@ router.get("/", async (req, res, next) => {
         if (value.status === 200) {
             val = value.data;
         }
-        console.log("value: ", value);
+        //console.log("value: ", value);
         return res.status(200).json({ console: val })
     } catch(error) {
         next(error)
     }
-})
+});
 
 router.get("/uid", async (req, res, next) => {
     try {
@@ -23,12 +23,11 @@ router.get("/uid", async (req, res, next) => {
         if (value.status === 200) {
             val = value.data;
         }
-        console.log("value: ", value);
+        //console.log("value: ", value);
         return res.status(200).json({ consoleUid: val })
     } catch(error) {
         next(error)
     }
-})
-
+});
 
 module.exports = router;

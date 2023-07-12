@@ -22,13 +22,14 @@ import Select from 'react-select';
 import axios from 'axios';
 import InfoIcon from '../InfoIcon/InfoIcon';
 
-function AddPlanModal() {
+function EditItem({ queueItem }) {
+    //TODO: instead of disaptch the consoluid check just use the axios api call
     //Add Error checking to make sure that all required fields are filled out and if they aren't disable add button
     const dispatch = useDispatch(); 
     const [currentPlan, setCurrentPlan] = useState(null);
     const [modal, setModal] = useState(false); //Open modal
     const [ planNames, setPlanNames ] = useState([]); //Get Plan names for select dropdown
-    const toggle = () => setModal(!modal);
+    
     const [ currentPlanName, setCurrentPlanName] = useState(null); //set the current plan name
     const { plans, devices } = useSelector(state => state.server);
     const [check, setCheck] = useState({}); //lists which parameters are edited and which ones arent
@@ -41,30 +42,107 @@ function AddPlanModal() {
     };
     const [error, setError] = useState(initialError);
     const [planError, setPlanError] = useState({});
-//TODO: Not everything is a default <= args is not default
+
     const handleClose = () => {
         setModal(!modal);
         setCurrentPlan(null);
         setError(initialError);
-        setCurrentPlanName(null);
         setCheck({});
         setPlaceHolderValues({});
         setPlanValues({});
         setPlanError({});
     };
-    //TODO: if detector classname does have catalog in the name do not include it in the list of detectors to add to plan
-    useEffect(() => {
-        if (plans.length === 0) {
-            //Checks to see if the plans state in redux is empty, if it is then we call the function to populate state with devices data
-            dispatch(getPlans());
-        } else {
-            if (plans?.plans?.success) {
-                //const propertyNames = Object.keys(plans.plans.plans_allowed);
-                const newVal = Object.keys(plans.plans.plans_allowed).map(key => ({ id: key }));
-                setPlanNames(newVal);
-                //console.log("proper: ", newVal);
+    const toggle = () => {
+        console.log("plans: ", plans.plans.success);
+        console.log("mo: ", modal);
+        if (!modal) {
+            
+            if (plans.plans.success) {
+                console.log("here")
+                //Gets the plan details of the current plan that is being edited
+                setCurrentPlan(plans?.plans.plans_allowed[queueItem.name]);
+                let obj = {};
+                let tempPlace = {};
+                let tempValue = {};
+                let tempError = {};
+                plans.plans.plans_allowed[queueItem.name].parameters.forEach(item => {
+                    //console.log("item: ", item);
+                    //If no default then its locked
+                    if (item.hasOwnProperty('default')) {
+                        obj[item.name] = {check: false, default: false};
+                        tempPlace[item.name] = `${item.default} (Default Value)`;
+                    } else {
+                        obj[item.name] = {check: true, default: true};
+                        tempPlace[item.name] = `Enter a Value`;
+                        tempValue[item.name] = '';
+                    }
+                    if (queueItem.kwargs?.hasOwnProperty(item.name)) {
+                        //get value thats already there
+                        if (item.name === 'detectors') {
+                            //console.log("val: ", queueItem.kwargs[item.name]);
+                            const newDevices = queueItem.kwargs[item.name].map(key => ({ id: key }));
+                            tempValue[item.name] = newDevices;
+                        } else {
+                            tempValue[item.name] = JSON.stringify(queueItem.kwargs[item.name]);
+                        }
+                        
+                        
+                        obj[item.name] = {...obj[item.name], check: true};
+                    }
+                    
+                    tempError[item.name] = false;
+                });
+                //console.log("valuesf: ", tempValue);
+                setPlanError({...tempError});
+                setPlanValues({...tempValue});
+                setPlaceHolderValues(tempPlace);
+                setCheck(obj);
+    
+            }       
+            
+            if (devices?.devices?.success) {
+                const newDevices = Object.keys(devices.devices.devices_allowed).map(key => ({ id: key }));
+                //console.log("new: ", newDevices);
+                setDevicesNames(newDevices);
             }
+        
         }
+        setModal(!modal)
+    };
+    //TODO: if detector classname does have catalog in the name do not include it in the list of detectors to add to plan
+    /*useEffect(() => {
+        if (plans.plans.success) {
+            //Gets the plan details of the current plan that is being edited
+            setCurrentPlan(plans?.plans.plans_allowed[queueItem.name]);
+            let obj = {};
+            let tempPlace = {};
+            let tempValue = {};
+            let tempError = {};
+            plans.plans.plans_allowed[queueItem.name].parameters.forEach(item => {
+                //If no default then its locked
+                if (item.hasOwnProperty('default')) {
+                    obj[item.name] = {check: false, default: false};
+                    tempPlace[item.name] = `${item.default} (Default Value)`;
+                } else {
+                    obj[item.name] = {check: true, default: true};
+                    tempPlace[item.name] = `Enter a Value`;
+                    tempValue[item.name] = '';
+                }
+                if (queueItem.kwargs?.hasOwnProperty(item.name)) {
+                    //get value thats already there
+                    tempValue[item.name] = queueItem.kwargs[item.name];
+                    obj[item.name] = {...obj[item.name], check: true};
+                }
+                
+                tempError[item.name] = false;
+            });
+            setPlanError({...tempError});
+            setPlanValues({...tempValue});
+            setPlaceHolderValues(tempPlace);
+            setCheck(obj);
+
+        }       
+        
 
         if (devices.length === 0) {
             dispatch(getDevices());
@@ -75,45 +153,17 @@ function AddPlanModal() {
                 setDevicesNames(newDevices);
             }
         }
-    }, []);
-
-    const handleSelect = (e) => {
-        if (e !== null) {
-            let obj = {};
-            let tempPlace = {};
-            let tempValue = {};
-            let tempError = {};
-            plans.plans.plans_allowed[e?.id].parameters.forEach(item => {
-                //If no default then its locked
-                
-                if (item.hasOwnProperty('default')) {
-                    obj[item.name] = {check: false, default: false};
-                    tempPlace[item.name] = `${item.default} (Default Value)`;
-                } else {
-                    obj[item.name] = {check: true, default: true};
-                    tempPlace[item.name] = `Enter a Value`;
-                    tempValue[item.name] = '';
-                }
-                tempError[item.name] = false;
-            });
-            setPlanError({...tempError});
-            setPlanValues({...tempValue});
-            setPlaceHolderValues(tempPlace);
-            setCheck(obj);
-            setCurrentPlanName(e?.id);
-            setCurrentPlan(plans.plans.plans_allowed[e?.id]);
-            setError(initialError);
-        } else {
-            setCurrentPlanName(null);
-            setCurrentPlan(null);
-        }
-    };
+    }, []);*/
 
     const handleChecked = (e) => {
         const { checked, name, id } = e.target;
+        console.log("n: ", name);
+        
         let tempValue = {...planValues}; //current plan values
         let tempError = {...planError};
-        const val = plans.plans.plans_allowed[currentPlanName].parameters[id].default;
+        const val = plans.plans.plans_allowed[queueItem.name].parameters[id].default;
+        //console.log("valPla: ", plans.plans.plans_allowed[]);
+        
         if (checked) {  
             tempValue[name] = val === 'None' ? '' : val;
         } else {
@@ -142,11 +192,13 @@ function AddPlanModal() {
     const handleSelectDetectors = (e) => {
         //Handles the selection of the detectors
         //if a detector is selected the detector list is updated
+        console.log("goo: ", e);
         if (e !== null && e.length !== 0) {
-            const arr = e.map((item) => item.id);
+            //const arr = e.map((item) => item.id);
+            //console.log("arr: ", arr);
             //If the detector list has at least one value unset any error
             setPlanError({...planError, detectors: false});
-            setPlanValues({...planValues, detectors: arr});
+            setPlanValues({...planValues, detectors: e});
         } else {
             //If there is no detectors selected then set the error for detectors true
             setPlanError({...planError, detectors: true});
@@ -159,7 +211,7 @@ function AddPlanModal() {
         let tempError = {...planError};
         let submit = true;
         for (let key in planValues) {
-            if (check[key].check) {
+            if (check[key]) {
                 //Makes sure that were only checking for parameters that are checked and required to be filled out
                 //Checks if the required parameters are filled out and if not set the error to true
                 if (key === 'detectors' && (planValues['detectors'].length === 0 || planValues['detectors'] === '')) {
@@ -186,48 +238,37 @@ function AddPlanModal() {
         return submit;
     };
 
-    const addToQueue = async () => {
+    const updateItem = async () => {
         const canSubmit = errorChecker();
         if (canSubmit) {
-            //item:='{"name":"count", "args":[["det1", "det2"]], "item_type": "plan"}'
-            //['user_group', 'user', 'item', 'pos', 'before_uid', 'after_uid', 'lock_key']
-            
-            const url = 'http://localhost:3001/queue/add';
+            const url = 'http://localhost:3001/queue/update';
             let tempArgs = {};
             //getting rid of the parameters that aren't checked anymore
             Object.entries(planValues).forEach(([key, value]) => {
                 if (check[key].check) {
-                    if (isNaN(value)) {
-                        tempArgs[key] = value;
+                    if (key === 'detectors') {
+                        const arr = value.map((item) => item.id);
+                        tempArgs[key] = arr;
                     } else {
-                        //turn value into a number
-                        tempArgs[key] = Number(value);
+                        if (isNaN(value)) {
+                            tempArgs[key] = value;
+                        } else {
+                            //turn value into a number
+                            tempArgs[key] = Number(value);
+                        }
                     }
-                    
                 }
             });
-            //console.log("tem: ", tempArgs);
-            const item = {
-                pos: 'back',
-                item: {name: currentPlanName, kwargs: {...tempArgs}, item_type: 'plan'}
-            };
-            
-            const response = await axios.post(url, item);
-            if (response.data.queue.success) {
-                dispatch(getQueue());
-                handleClose();
-            } else {
-                setError({
-                    message: response.data.queue.msg,
-                    error: true,
-                });
-            }
-            if (response.status === 200) {
-                dispatch(getQueue());
-            }
+            const stuff = {...queueItem, kwargs: {...tempArgs}}
+            const response = await axios.post(url, stuff);
             console.log("Response: ", response);
+            setModal(!modal);
+            dispatch(getQueue());
         }
+
+        
     }
+
     
     const errorDropDown = {
         control: (base) => ({
@@ -238,38 +279,15 @@ function AddPlanModal() {
 
     return (
         <div>
-            <Card style={{ marginBottom: '10px'}} className='shadow'>
-                <CardBody style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                    <Button onClick={toggle}>
-                        Add Plan to Queue
-                    </Button>
-                </CardBody>
-            </Card>
+            <Button onClick={toggle} color='primary'>
+                Edit
+            </Button>
         <Modal isOpen={modal} toggle={toggle} size={'lg'} backdrop={'static'}>
-            <ModalHeader toggle={toggle}>Add Plan to Queue</ModalHeader>
+            <ModalHeader toggle={toggle}>Edit Plan to Queue</ModalHeader>
             <ModalBody>
-                <Card className='shadow'>
-                    <CardBody>
-                        <Label>
-                            <strong>
-                                Select a Plan to Preview/Add
-                            </strong>
-                        </Label>
-                        <Select
-                            options={planNames}
-                            getOptionValue={(options) => options['id']}
-                            getOptionLabel={(options) => options['id']}
-                            isClearable={true}
-                            onChange={handleSelect}
-                        />
-                    </CardBody>
-                </Card>
 
-                {currentPlan && 
-                <Card style={{ marginTop: '20px'}} className='shadow'>
-                    <CardBody>
                         <h5 style={{ textAlign: 'center', marginBottom: '10px', marginTop: '10px'}}>
-                            <strong>{currentPlanName}</strong>
+                            <strong>{queueItem.name}</strong>
                         </h5>
                         {
                             currentPlan?.description ? 
@@ -277,7 +295,8 @@ function AddPlanModal() {
                             <strong>Description:</strong> {currentPlan?.description}
                             </h6> : null
                         }
-                        
+                        {/*<Button onClick={() => console.log("it: ", queueItem)}>Click</Button>
+                        <Button onClick={() => console.log("newitem: ", queueItem)}>ClickMe</Button>*/}
                         <Table striped>
                             <thead>
                                 <tr>
@@ -293,13 +312,14 @@ function AddPlanModal() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {
+                                 {
                                     currentPlan?.parameters?.map((item, index) => {
                                         return (
                                             <tr>
                                                 <th style={{ display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                                     {item.name}
                                                     <InfoIcon header={item.name} content={item.description} id={item.name.concat(`${index}`)}/>
+                                            
                                                 </th>
                                                 <th>
                                                     <FormGroup check>
@@ -316,6 +336,7 @@ function AddPlanModal() {
                                                 <th>
                                                 {item.name === 'detectors' ? 
                                                 <Select
+                                                    value={planValues[item.name]}
                                                     options={deviceNames}
                                                     getOptionValue={(options) => options['id']}
                                                     getOptionLabel={(options) => options['id']}
@@ -338,17 +359,16 @@ function AddPlanModal() {
                                         )
                                     })
                                 }
+                                
                             </tbody>
                         </Table>
                         {error && <p style={{ color: 'red', textAlign: 'center'}}>
                             {error?.message}
                             </p>}
-                    </CardBody>
-                </Card>}
             </ModalBody>
             <ModalFooter style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-            <Button color="primary" onClick={addToQueue}>
-                Add Plan To Queue
+            <Button color="primary" onClick={updateItem}>
+                Update Plan
             </Button>
             <Button color="secondary" onClick={handleClose}>
                 Cancel
@@ -359,4 +379,4 @@ function AddPlanModal() {
     );
 }
 
-export default AddPlanModal;
+export default EditItem;

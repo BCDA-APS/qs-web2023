@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Row,
     Col,
 } from 'reactstrap';
+
 import ConnectionControl from '../ConnectionControl/ConnectionControl';
 import Devices from '../Devices/Devices';
 import ConsoleOutput from '../ConsoleOutput/ConsoleOutput';
@@ -14,10 +15,17 @@ import QueueConsole from '../QueueConsole/QueueConsole';
 import Plans from '../Plans/Plans';
 import Status from '../Status/Status';
 import PlanExecution from '../PlanExecution/PlanExecution';
+import { useDispatch } from 'react-redux';
+import { getPlans, getDevices, getQueue } from '../../redux/serverSlice';
 
 function Layout() {
+    const dispatch = useDispatch(); 
     // TODO: , FIXME: design idea: change the text in the queue buttons to shorten section, maybe add the section ontop of 
     //something else and add the running plan on the top bar
+    useEffect(() => {
+        dispatch(getDevices());
+        dispatch(getPlans());
+    }, []);
     return (
         <div>
             {/*<Row>

@@ -8,26 +8,127 @@ import {
     Col,
     Label
 } from 'reactstrap';
+import ServerCalls from '../../redux/serverCalls';
 import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { getConsole, getConsoleOutputUID, getQueue, getStatus, getHistory } from '../../redux/serverSlice';
+import { useConsoleConfig } from '../../redux/configContext';
 
 function ConsoleOutput() {
+    //TODO: if something in the console changes update the entire site too
     const [consoleInfo, setConsole ] = useState("");
+    const [consoleUid, setConsoleUid] = useState(null);
+    
+    const dispatch = useDispatch(); 
+    const { consoleOutput } = useSelector(state => state.server);
+    const { consoleConfig } = useConsoleConfig();
+    const [timerValue, setTimerValue] = useState(null);
+    const [intervalId, setIntervalId] = useState(null);
     useEffect(() => {
+
         (async () => {
-            const value = await axios.get('http://localhost:3001/console');
-            if (value.status === 200) {
-                if (value.data.console.success) {
-                    setConsole(value.data?.console.text);
-                }
-                
+        
+        if (Object.keys(consoleOutput).length === 0) {
+            dispatch(getConsole());
+        }
+        let currentVal = consoleUid;
+        if (consoleUid === null) {
+            console.log("goingst in here");
+            const { data, error } = await ServerCalls.getConsoleOutputUID();
+            console.log("data3: ", data);
+            if (data?.consoleUid?.success) {
+                currentVal = data?.consoleUid?.console_output_uid;
+                setConsoleUid(currentVal);
             }
-        })();
+            //console.log("value: ", value);
+        }
+
+        const checkId = async () => {
+            console.log("hey: ", consoleConfig.console);
+            const { data, error } = await ServerCalls.getConsoleOutputUID();
+            if (data?.consoleUid?.success) {
+                if (data.consoleUid?.console_output_uid !== currentVal) {
+                    currentVal = data.consoleUid?.console_output_uid;
+                    setConsoleUid(currentVal);
+                    //console.log("is not the same: ", newValue.payload?.consoleUid?.console_output_uid);
+                    dispatch(getConsole());
+                }
+            }
+        };
+
+        if (intervalId) {
+            console.log("inter: ", intervalId);
+            clearInterval(intervalId);
+        }
+
+        const timer = setInterval(async () => {
+            const { data, error } = await ServerCalls.getConsoleOutputUID();
+            if (data?.consoleUid?.success) {
+                if (data.consoleUid?.console_output_uid !== currentVal) {
+                    currentVal = data.consoleUid?.console_output_uid;
+                    setConsoleUid(currentVal);
+                    //console.log("is not the same: ", newValue.payload?.consoleUid?.console_output_uid);
+                    dispatch(getConsole());
+                    dispatch(getQueue());
+                    dispatch(getHistory());
+                    dispatch(getStatus());
+                }
+            }
+            console.log("hey: ", consoleConfig.console);
+          
+        }, consoleConfig.console * 1000); 
+
+        setIntervalId(timer);
+        return () => {
+            clearInterval(timer);
+        };
+
         /*
-        if (textareaRef.current) {
-            textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
-            console.log("info: ", textareaRef.current.scrollHeight);
-          }*/
-    }, []);
+        //checkId();
+        let interval = inter;
+        if (timerValue !== consoleConfig.console) {
+            console.log("here: ", timerValue);
+            console.log("inter: ", interval);
+            clearInterval(interval);
+            interval = setInterval(checkId, consoleConfig.console * 1000);
+            console.log("interv: ", interval);
+            setInter(interval);
+            setTimerValue(consoleConfig.console)
+        }*/
+        /*
+        let interval = setInterval(checkId, consoleConfig.console * 1000);
+        //const interval = setInterval(checkId, consoleConfig.console * 1000); // Convert seconds to milliseconds
+        //console.log("here");
+        // Clean up the intervifal when the component unmounts
+        if (consoleConfig.console !== timerValue) {
+            console.log("here :" , consoleConfig.console);
+            clearInterval(interval);
+            interval = setInterval(checkId, consoleConfig.console * 1000);
+
+            setTimerValue(consoleConfig.console);
+        }*/
+        
+        
+        /*
+        
+        const timer = setInterval(async () => {
+            const { data, error } = await ServerCalls.getConsoleOutputUID();
+            if (data?.consoleUid?.success) {
+                if (data.consoleUid?.console_output_uid !== currentVal) {
+                    currentVal = data.consoleUid?.console_output_uid;
+                    setConsoleUid(currentVal);
+                    //console.log("is not the same: ", newValue.payload?.consoleUid?.console_output_uid);
+                    dispatch(getConsole());
+                }
+            }
+            console.log("hey: ", consoleConfig.console);
+          
+        }, consoleConfig.console * 1000); // 3000 milliseconds = 3 seconds
+      
+          // Clean up the timer when the component unmounts
+          return () => clearInterval(timer);*/
+    })();
+    }, [consoleConfig]);
 
     return (
         <div>
@@ -62,7 +163,7 @@ function ConsoleOutput() {
                             <Input
                                 type='textarea'
                                 readOnly={true}
-                                value={consoleInfo}
+                                value={consoleOutput?.console?.text}
                             />
                         </Col>
                     </Row>

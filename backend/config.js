@@ -7,4 +7,4 @@ console.log("PORT:".blue, PORT);
 
 module.exports = {
     PORT,
-  }
+}

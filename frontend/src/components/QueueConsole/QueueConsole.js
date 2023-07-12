@@ -7,6 +7,7 @@ import {
     Row,
     Col,
     Label,
+    FormGroup,
     Table
 } from 'reactstrap';
 import axios from 'axios';
@@ -14,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import EditQueueModal from '../EditQueueModal/EditQueueModal';
 import { getQueue } from '../../redux/serverSlice';
 import QueueItem from '../QueueItem/QueueItem';
+import EditItem from '../EditItem/EditItem';
 
 function QueueConsole() {
     const dispatch = useDispatch();
@@ -21,22 +23,9 @@ function QueueConsole() {
     const [currentPlan, setCurrentPlan] = useState(null);
     const { queue } = useSelector(state => state.server);
     const [ refresh, setRefresh] = useState(false);
+    const [checkedList, setCheckList] = useState([]);
     useEffect(() => {
         dispatch(getQueue());
-        /*
-        (async () => {
-            const value = await axios.get('http://localhost:3001/queue');
-            if (value.status === 200) {
-                if (value.data.queue.success) {
-                    setQueue(value.data.queue.items);
-                }
-                //console.log("stuff: ", value.data);
-                //const propertyNames = Object.keys(value.data?.devices);
-                //setNames(propertyNames);
-                //console.log("proper: ", propertyNames);
-            }
-            //console.log("value: ", value);
-        })();*/
     }, [refresh]);
 
     const clearQueue = async () => {
@@ -51,20 +40,22 @@ function QueueConsole() {
         }
     };
 
-    const removeQueueItem = async (uid) => {
-        try {
-          const url = 'http://localhost:3001/queue/delete';
-          const requestData = {
-            uid
-          };
-      
-          const response = await axios.post(url, requestData);
-          console.log(response.data);
-          setCurrentPlan(null);
-          setRefresh(!refresh);
-        } catch (error) {
-          console.error(error);
-        }
+    const removeQueueItem = async () => {
+        checkedList.map(async (item) => {
+            try {
+                const url = 'http://localhost:3001/queue/delete';
+                const requestData = {
+                  uid: item.item_uid
+                };
+            
+                const response = await axios.post(url, requestData);
+                console.log(response.data);
+              } catch (error) {
+                console.error(error);
+              }
+        });
+        setCheckList([]);
+        setRefresh(!refresh);
     };
 
     const moveQueueItem = async (item, moveType) => {
@@ -94,6 +85,30 @@ function QueueConsole() {
           console.error(error);
         }
       };
+    const printParama = (args) => {
+        return Object.entries(args)
+        .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+        .join(", ");
+    };
+    const isInArr = (item) => {
+        const isIncluded = checkedList.includes(item);
+        return isIncluded;
+    };
+
+    const handleChecked = (e) => {
+        const { checked, name, id } = e.target;
+        let arr = [...checkedList];
+        //let val = {...queue?.queue?.items[name], index: name};
+        if (checked) {
+            arr.push(queue?.queue?.items[name]);
+        } else {
+            const index = arr.indexOf(queue?.queue?.items[name]);
+            if (index !== -1) {
+                arr.splice(index, 1);
+            }
+        }
+        setCheckList([...arr]);
+    };
 
     return (
         <div>
@@ -101,15 +116,15 @@ function QueueConsole() {
                 <CardBody>
                     <h3 style={{ textAlign: 'center'}}>Queue</h3>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', marginBottom: '10px'}}>
-                        <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === 0 ? true : false} onClick={() => moveQueueItem(currentPlan, 'UP')}>Up</Button>
-                        <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === (queue?.queue?.items?.length - 1) ? true : false} onClick={() => moveQueueItem(currentPlan, 'DOWN')}>Down</Button>
-                        <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === 0 ? true : false} onClick={() => moveQueueItem(currentPlan, 'TOP')}>Top</Button>
-                        <Button size='sm' disabled={currentPlan === null ? true : currentPlan?.index === (queue?.queue?.items?.length - 1) ? true : false} onClick={() => moveQueueItem(currentPlan, 'BOTTOM')}>Bottom</Button>
-                        <Button size='sm' disabled={currentPlan === null} onClick={() => setCurrentPlan(null)}>Deselect</Button>
+                        <Button size='sm' /*disabled={currentPlan === null ? true : currentPlan?.index === 0 ? true : false}*/ onClick={() => moveQueueItem('UP')}>Up</Button>
+                        <Button size='sm' /*disabled={currentPlan === null ? true : currentPlan?.index === (queue?.queue?.items?.length - 1) ? true : false}*/ onClick={() => moveQueueItem('DOWN')}>Down</Button>
+                        <Button size='sm' /*disabled={currentPlan === null ? true : currentPlan?.index === 0 ? true : false}*/ onClick={() => moveQueueItem('TOP')}>Top</Button>
+                        <Button size='sm' /*disabled={currentPlan === null ? true : currentPlan?.index === (queue?.queue?.items?.length - 1) ? true : false}*/ onClick={() => moveQueueItem('BOTTOM')}>Bottom</Button>
+                        <Button size='sm' onClick={() => setCheckList([])} disabled={checkedList.length === 0}>Deselect</Button>
                         <Button size='sm' onClick={clearQueue}>Clear</Button>
-                        <Button size='sm' onClick={() => console.log("currentPlan: ", currentPlan)}>Loop</Button>
-                        <Button size='sm' disabled={currentPlan === null} onClick={() => removeQueueItem(currentPlan?.item.item_uid)}>Delete</Button>
-                        <Button size='sm' disabled={currentPlan === null}>Duplicate</Button>
+                        <Button size='sm' onClick={() => console.log("checkedList: ", checkedList)}>Loop</Button>
+                        <Button size='sm' disabled={checkedList.length < 1 ? true : false} onClick={removeQueueItem}>Delete</Button>
+                        <Button size='sm' disabled={checkedList.length < 1 ? true : false}>Duplicate</Button>
                     </div>
                     <Row style={{ maxHeight: '500px', overflowY: 'scroll'}}>
                         <Table hover>
@@ -117,10 +132,11 @@ function QueueConsole() {
                                 <tr>
                                     <th>
                                     </th>
+                                    <th></th>
                                     <th>
                                         Name
                                     </th>
-                                    <th>
+                                    <th style={{maxWidth: '100px'}}>
                                         Parameters
                                     </th>
                                     <th>
@@ -132,6 +148,7 @@ function QueueConsole() {
                                     <th>
                                         Edit
                                     </th>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -139,20 +156,32 @@ function QueueConsole() {
                                     queue?.queue?.items?.map((item, index) => {
                                         return (
                                             <tr 
-                                                onClick={() => setCurrentPlan({item, index})} 
                                                 key={item.item_uid}
-                                                
-                                                className={item.item_uid === currentPlan?.item.item_uid ? "table-primary" : ''}
+                                                className={isInArr(item) ? "table-primary" : ''}
+                                                //className={item.item_uid === currentPlan?.item.item_uid ? "table-primary" : ''}
                                             >
+                                                <th>
+                                                    <FormGroup check>
+                                                        <Input 
+                                                            type="checkbox" 
+                                                            id={item.name}
+                                                            name={index}
+                                                            onChange={handleChecked}
+                                                            checked={isInArr(item)}
+                                                        />
+                                                    </FormGroup>
+                                                </th>
                                                 <th>
                                                     {index + 1}
                                                 </th>
                                                 <th>
                                                     {item.name}
                                                 </th>
+                                                {/*<th style={{maxWidth: '150px', overflowX: 'scroll', whiteSpace: 'nowrap'}}>*/}
                                                 <th>
-                                                    PlaceHolder
+                                                    {printParama(item.kwargs)}
                                                 </th>
+                                                {/*<th style={{maxWidth: '150px', overflowX: 'scroll', whiteSpace: 'nowrap'}}>*/}
                                                 <th>
                                                     {item.user}
                                                 </th>
@@ -160,9 +189,9 @@ function QueueConsole() {
                                                     {item.user_group}
                                                 </th>
                                                 <th>
-                                                    <EditQueueModal item={item}/>
-                                        </th>
-                        
+                                                    <EditItem queueItem={item}/>
+                                                </th>
+                                            
                                             </tr>
                                         )
                                     })

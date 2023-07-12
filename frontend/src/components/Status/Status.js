@@ -11,18 +11,18 @@ import {
     CardHeader,
     CardTitle
 } from 'reactstrap';
-import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { getStatus } from '../../redux/serverSlice';
+
 
 function Status() {
     //Need to constantly update according to whether environment is created or closed and if queue starts or something or if history or queue is cleared
-    const [status, setStatus] = useState({});
+    //const [status, setStatus] = useState({});
+    const dispatch = useDispatch();
+    const { status } = useSelector(state => state.server);
+
     useEffect(() => {
-        (async () => {
-            const value = await axios.get('http://localhost:3001/status');
-            if (value.status === 200) {
-                setStatus(value.data.status);
-            }
-        })();
+        dispatch(getStatus());
     }, []);
 
  
@@ -37,7 +37,7 @@ function Status() {
                         <Col
                             xs="6"
                         >
-                            RE Environment: {status?.worker_environment_state === 'idle' ? 'OPEN' : status?.worker_environment_state}
+                            RE Environment: {status.status?.worker_environment_state === 'idle' ? 'OPEN' : status.status?.worker_environment_state}
                         </Col>
                         <Col
                             xs="6"
@@ -49,36 +49,36 @@ function Status() {
                         <Col
                             xs="6"
                         >
-                            Manager State: {status?.manager_state?.toUpperCase()}
+                            Manager State: {status.status?.manager_state?.toUpperCase()}
                         </Col>
                         <Col
                             xs="6"
                         >
-                            Queue STOP Pending: {status?.queue_stop_pending ? 'YES' : 'NO'}
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col
-                            xs="6"
-                        >
-                            RE State: {status?.re_state?.toUpperCase()}
-                        </Col>
-                        <Col
-                            xs="6"
-                        >
-                            Queue LOOP Mode: {status?.plan_queue_mode?.loop ? 'ON' : 'OFF'}
+                            Queue STOP Pending: {status.status?.queue_stop_pending ? 'YES' : 'NO'}
                         </Col>
                     </Row>
                     <Row>
                         <Col
                             xs="6"
                         >
-                            Items in History: {status?.items_in_history}
+                            RE State: {status.status?.re_state?.toUpperCase()}
                         </Col>
                         <Col
                             xs="6"
                         >
-                            Items in Queue: {status?.items_in_queue}
+                            Queue LOOP Mode: {status.status?.plan_queue_mode?.loop ? 'ON' : 'OFF'}
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col
+                            xs="6"
+                        >
+                            Items in History: {status.status?.items_in_history}
+                        </Col>
+                        <Col
+                            xs="6"
+                        >
+                            Items in Queue: {status.status?.items_in_queue}
                         </Col>
                     </Row>
                 </CardBody>
