@@ -8,8 +8,6 @@ import {
 import Environment from '../Environment/Environment';
 import { useDispatch, useSelector } from 'react-redux';
 import { getDevices, getPlans } from '../../redux/serverSlice';
-import Devices from '../Devices/Devices';
-import AddPlanModal from '../AddPlanModal/AddPlanModal';
 import ConfigurationModal from '../ConfigurationModal/ConfigurationModal';
 
 function SideBar() {
@@ -34,7 +32,7 @@ function SideBar() {
                 color="light"
                 onClick={toggle}
             >
-                View Details
+                Settings
             </Button>
             <Offcanvas
                 direction="end"
@@ -42,15 +40,11 @@ function SideBar() {
                 isOpen={sidebar}
             >
                 <OffcanvasHeader toggle={toggle}>
-                Extra Details
+                
                 </OffcanvasHeader>
 
                 <OffcanvasBody>
                     <Environment />
-                    
-                    <Devices />
-
-                    <AddPlanModal />
                     
                     <ConfigurationModal />
                 </OffcanvasBody>

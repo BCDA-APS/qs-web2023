@@ -15,11 +15,12 @@ import axios from 'axios';
 import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
 import { getPlans, getDevices, getQueue } from '../../redux/serverSlice';
+import { Edit } from 'react-feather';
 
 function EditQueueModal(props) {
     //TODO: NEED TO DO ERROR TO DISTINGUISH BETWEEN STR AND INT
-    console.log("props")
     const [modal, setModal] = useState(false);
+    const [ isHover, setHover] = useState(false);
     
     const [item, setItem] = useState(props.item);
     const [parameters, setParameters] = useState(props.item?.kwargs);
@@ -67,10 +68,8 @@ function EditQueueModal(props) {
     };
 
     return (
-        <div>
-            <Button color="primary" onClick={toggle}>
-                Edit
-            </Button>
+        <div> 
+            <Edit style={isHover ? {color: '#0d6efd', margin: '10px'} : {color: 'black', margin: '10px'}} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={toggle}/>
             <Modal isOpen={modal} toggle={toggle} size='lg'>
                 <ModalHeader style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>Edit Plan</ModalHeader>
                 <ModalBody>

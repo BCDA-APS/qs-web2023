@@ -20,7 +20,7 @@ function History() {
     const dispatch = useDispatch(); 
     const [historyList, setHistory] = useState([]);
     const [currentPlan, setCurrentPlan] = useState(null);
-    const { queue, history } = useSelector(state => state.server);
+    const { queue, history, status } = useSelector(state => state.server);
     const [checkedList, setCheckList] = useState([]);
     useEffect(() => {
         dispatch(getHistory());
@@ -113,9 +113,8 @@ function History() {
         if (response.status === 200) {
             dispatch(getQueue());
             dispatch(getStatus());
-            setCheckList([]);
         }
-        console.log("Response: ", response);
+        console.log("Response: ", response); 
     }
 
     const isInArr = (item) => {
@@ -131,22 +130,21 @@ function History() {
 
 
     return (
-        <div>
-            <Card className='shadow' body style={{ height: '650px'}}>
+        <div /*style={{ maxWidth: '580px'}}*/>
+            <Card className='shadow' style={{ maxHeight: '80%', }}>
                 <CardBody>
-                    <h3 style={{ textAlign: 'center'}}>History</h3>
+                    <h5 style={{ textAlign: 'center'}}>History <span style={{ fontSize: '.875rem', fontStyle: 'italic'}}>(# of items: {status.status?.items_in_history})</span></h5>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', marginBottom: '10px'}}>
                         <Button size='sm' onClick={copyToQueue} disabled={checkedList.length === 0}>Copy to Queue</Button>
                         <Button size='sm' onClick={() => setCheckList([])} disabled={checkedList.length === 0}>Deselect All</Button>
                         <Button size='sm' onClick={clearHistory}>Clear History</Button>
                         {/*<Button onClick={() => console.log("list: ", checkedList)}>Click</Button>*/}
                     </div>
-                    <Row style={{ maxHeight: '500px', overflowY: 'scroll', height: '100%'}}>
+                    <Row style={{ maxHeight: '450px', overflowY: 'scroll'}}>
                         <Table hover>
                         <thead>
                             <tr>
-                                <th>
-                                </th>
+                                
                                 <th>
                                 </th>
                                 <th>
@@ -155,18 +153,10 @@ function History() {
                                 <th>
                                     Status
                                 </th>
-                                <th>
+                                <th style={{ width: '300px'}}>
                                     Parameters
                                 </th>
-                                <th>
-                                    User
-                                </th>
-                                <th>
-                                    Group
-                                </th>
-                                <th>
-                                    Results
-                                </th>
+                                
                             </tr>
                         </thead>
                         <tbody>
@@ -191,29 +181,19 @@ function History() {
                                                     />
                                                 </FormGroup>
                                             </th>
-                                            <th>
-                                                {index + 1}
-                                            </th>
-                                            <th>
+                                            <th style={{ display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                                 {item.name}
+                                                <ViewResults obj={item}/>
                                             </th>
                                             <th>
                                                 {item.result.exit_status}
                                             </th>
-                                            <th>
+                                            <th style={{ overflowY: 'auto', maxHeight: '50px', maxWidth: '300px', fontSize: '.875rem'}}>
                                                 {
                                                  printParama(item.kwargs)
                                                 }
                                             </th>
-                                            <th>
-                                                {item.user}
-                                            </th>
-                                            <th>
-                                                {item.user_group}
-                                            </th>
-                                            <th>
-                                                <ViewResults result={item.result} name={item.name}/>
-                                            </th>
+                                            
                                         </tr>
                                     )
                                 })

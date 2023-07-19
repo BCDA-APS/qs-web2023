@@ -9,40 +9,74 @@ import {
     Label,
     FormGroup,
     Row,
-    Container
+    Container,
+    Col
 } from 'reactstrap';
+import {Info} from "react-feather";
 
-function ViewResults({result, name}) {
+function ViewResults({ obj }) {
   const [modal, setModal] = useState(false);
+  const [ isHover, setHover] = useState(false);
 
   const toggle = () => setModal(!modal);
 
   return (
     <div>
-      <Button color="light" onClick={toggle}>
-        View
-      </Button>
+      <Info size={20} onClick={toggle} style={isHover ? {color: '#0d6efd', margin: '10px'} : {color: 'black', margin: '10px'}} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}/>
       <Modal isOpen={modal} toggle={toggle}>
-        <ModalHeader toggle={toggle}>View Results</ModalHeader>
+        <ModalHeader toggle={toggle}>Plan Details</ModalHeader>
         <ModalBody>
             
             <Row style={{ textAlign: 'center'}}>
-                <h5>{name}</h5>
+                <h5>{obj.name}</h5>
             </Row>
             <Container>
                 <Row style={{ margin: '10px 0px'}}>
-                    <strong>Exit Status</strong>
+                    <strong>User</strong>
                     <Input
-                        value={result.exit_status}
+                        value={obj.user}
                         type='text'
                         readOnly={true}
                     />
+                </Row>
+                <Row style={{ margin: '10px 0px'}}>
+                    <strong>Group</strong>
+                    <Input
+                        value={obj.user_group}
+                        type='text'
+                        readOnly={true}
+                    />
+                </Row>
+                {obj.hasOwnProperty('result') && <><Row style={{ marginTop: '10px', marginBottom: '10px'}}>
+                    <Col>
+                        <strong>Start Time</strong> <Input
+                            value={obj.result.time_start}
+                            type='text'
+                            readOnly={true}
+                        />
+                    </Col>
+                    <Col>
+                        <strong>Stop Time</strong> <Input
+                            value={obj.result.time_stop}
+                            type='text'
+                            readOnly={true}
+                        />
+                    </Col>
+                </Row> 
+                <Row style={{ margin: '10px 0px'}}>
+                    <strong>Exit Status</strong>
+                        <Input
+                            value={obj.result.exit_status}
+                            type='text'
+                            readOnly={true}
+                        />
+                    
                 </Row>
         
                 <Row style={{ margin: '10px 0px'}}>
                     <strong>Run uids</strong>
                     <Input
-                        value={result.run_uids.length === 0 ? 'None': JSON.stringify(result.run_uids)}
+                        value={obj.result.run_uids.length === 0 ? 'None': JSON.stringify(obj.result.run_uids)}
                         type='text'
                         readOnly={true}
                     />
@@ -50,43 +84,27 @@ function ViewResults({result, name}) {
                 <Row style={{ margin: '10px 0px'}}>
                     <strong>Scan ids</strong>
                     <Input
-                        value={result.scan_ids.length === 0 ? 'None': JSON.stringify(result.scan_ids)}
+                        value={obj.result.scan_ids.length === 0 ? 'None': JSON.stringify(obj.result.scan_ids)}
                         type='text'
                         readOnly={true}
                     />
                 </Row>
                 <Row style={{ margin: '10px 0px'}}>
                     <strong>Message</strong> <Input
-                        value={result.msg === '' ? 'None' :result.msg}
+                        value={obj.result.msg === '' ? 'None' : obj.result.msg}
                         type='textarea'
                         readOnly={true}
                     />
-                </Row>
-                <Row style={{ margin: '10px 0px'}}>
-                    <strong>Start Time</strong> <Input
-                        value={result.time_start}
-                        type='text'
-                        readOnly={true}
-                    />
-                    
-                </Row> 
-                <Row style={{ margin: '10px 0px'}}>
-                    <strong>Stop Time</strong> <Input
-                        value={result.time_stop}
-                        type='text'
-                        readOnly={true}
-                    />
-                    
                 </Row>
                 <Row style={{ margin: '10px 0px'}}>
                     <strong>Traceback</strong> 
                     <Input
-                        value={result.traceback === '' ? 'None' : result.traceback}
+                        value={obj.result.traceback === '' ? 'None' : obj.result.traceback}
                         type='textarea'
                         readOnly={true}
                     />
                     
-                </Row>
+                </Row></>}
             </Container>
         </ModalBody>
       </Modal>

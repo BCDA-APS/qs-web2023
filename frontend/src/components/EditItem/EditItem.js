@@ -21,13 +21,15 @@ import { getPlans, getDevices, getQueue } from '../../redux/serverSlice';
 import Select from 'react-select';
 import axios from 'axios';
 import InfoIcon from '../InfoIcon/InfoIcon';
+import { Edit } from 'react-feather';
 
-function EditItem({ queueItem }) {
+function EditItem({ queueItem, setIsOpen, isOpen }) {
     //TODO: instead of disaptch the consoluid check just use the axios api call
     //Add Error checking to make sure that all required fields are filled out and if they aren't disable add button
     const dispatch = useDispatch(); 
     const [currentPlan, setCurrentPlan] = useState(null);
     const [modal, setModal] = useState(false); //Open modal
+    const [ isHover, setHover] = useState(false);
     const [ planNames, setPlanNames ] = useState([]); //Get Plan names for select dropdown
     
     const [ currentPlanName, setCurrentPlanName] = useState(null); //set the current plan name
@@ -44,6 +46,7 @@ function EditItem({ queueItem }) {
     const [planError, setPlanError] = useState({});
 
     const handleClose = () => {
+        console.log("here");
         setModal(!modal);
         setCurrentPlan(null);
         setError(initialError);
@@ -107,7 +110,8 @@ function EditItem({ queueItem }) {
             }
         
         }
-        setModal(!modal)
+        setModal(!modal);
+        //setIsOpen(!isOpen);
     };
     //TODO: if detector classname does have catalog in the name do not include it in the list of detectors to add to plan
     /*useEffect(() => {
@@ -279,9 +283,7 @@ function EditItem({ queueItem }) {
 
     return (
         <div>
-            <Button onClick={toggle} color='primary'>
-                Edit
-            </Button>
+            <Edit style={isHover ? {color: '#0d6efd'} : {color: 'black'}} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={toggle}/>
         <Modal isOpen={modal} toggle={toggle} size={'lg'} backdrop={'static'}>
             <ModalHeader toggle={toggle}>Edit Plan to Queue</ModalHeader>
             <ModalBody>

@@ -33,7 +33,7 @@ function NavBar({children}) {
           }}
         />
       </NavbarBrand>
-        <NavbarText style={{ textAlign: 'center'}}>BlueSky Queue Monitor</NavbarText>
+        <NavbarText style={{ textAlign: 'center'}}>bluesky Queue Monitor</NavbarText>
         <SideBar />
       </Navbar>
       {children}

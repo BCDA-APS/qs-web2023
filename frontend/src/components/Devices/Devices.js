@@ -21,6 +21,7 @@ import { Check, X } from 'react-feather';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { getDevices } from '../../redux/serverSlice';
+import { Search } from 'react-feather';
 
 function Devices() {
     //When selecting a dectetor have a multi select where users can select one or more dectors from the list of devices
@@ -45,7 +46,8 @@ function Devices() {
         setModal(!modal);
     };
     useEffect(() => {
-        const filteredItems = devices.deviceList.filter((item) => {
+        if (devices?.deviceList) {
+        const filteredItems = devices?.deviceList?.filter((item) => {
             let check = {
                 search: false,
                 module: false,
@@ -110,19 +112,26 @@ function Devices() {
             }
         });
         setCurrentList([...filteredItems]); 
+    }
     }, [filterValues]);
 
     //add modules and classname, search by modules and classname
     //Inlcude check marks and red x's to symbolize the true and false, add a search section to search for names
     useEffect(() => {
+        (async () => {
         if (devices.length === 0) {
             //Checks to see if the devices state in redux is empty, if it is then we call the function to populate state with devices data
-            dispatch(getDevices());
+            const val = await dispatch(getDevices());
+            console.log("val de: ", val);
+            if (val.payload.devices.succes) {
+                setCurrentList(val.payload.devices.deviceList);
+            }
         } else {
-            if (devices.devices.success) {
+            if (devices?.devices?.success) {
                 setCurrentList(devices.deviceList);
             }
         }
+    })();
     }, []);
     //Inlcude a section in filter to list devices that are readable and that arent
     const filterByName = (e) => {
@@ -136,13 +145,15 @@ function Devices() {
     };
     return (
         <div>
-            <Card style={{ marginBottom: '10px'}} className='shadow'>
-                <CardBody style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                    <Button onClick={toggle}>
-                        View Available Devices
-                    </Button>
-                </CardBody>
-            </Card>
+            <div style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px', /* Adjust the size as needed */
+    height: '40px', /* Adjust the size as needed */
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
+  }}><Search size={20} onClick={toggle}/></div>
             <Modal isOpen={modal} toggle={toggle} size={'xl'}>
                 <ModalHeader toggle={toggle}>Devices</ModalHeader>
                 <ModalBody>
@@ -348,7 +359,7 @@ function Devices() {
                     </Card>
                     <Card className='shadow' body>
                         <CardBody style={{ maxHeight: '500px', overflowY: 'scroll', height: '100%'}}>
-                        {currentList.length > 0 ? <Table striped>
+                        {currentList?.length > 0 ? <Table striped>
                             <thead>
                                 <tr style={{ textAlign: 'center'}}>
                                     <th>
@@ -372,7 +383,7 @@ function Devices() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {currentList.map((item) => {
+                                {currentList?.map((item) => {
                                     return (
                                         <tr style={{ textAlign: 'center'}}>
                                             <td>

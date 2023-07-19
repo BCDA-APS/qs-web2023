@@ -13,7 +13,7 @@ import {
 } from 'reactstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { getStatus } from '../../redux/serverSlice';
-
+import axios from 'axios';
 
 function Status() {
     //Need to constantly update according to whether environment is created or closed and if queue starts or something or if history or queue is cleared
@@ -25,14 +25,33 @@ function Status() {
         dispatch(getStatus());
     }, []);
 
- 
+    useEffect(() => {
+        (async () => {
+        console.log("herein ");
+        if (status.length !== 0 && status?.status?.running_item_uid !== null) {
+            const val = await getItem(status?.status?.running_item_uid);
+            console.log("valid: ", val);
+        }
+        })();
+    }, [status?.status?.running_item_uid]);
+
+    const getItem = async (id) => {
+        try {
+            console.log("status id: ", id);
+            const url = 'http://localhost:3001/queue/get/item';
+            const response = await axios.get(url, {id});
+            return response.data;
+        } catch (error) {
+            console.error(error);
+        }
+    }
     return (
         <div>
-            <Card style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center'}} className='shadow' body>
+            <Card className='shadow'>
                 <CardHeader style={{ background: 'unset', border: 'unset', textAlign: 'center'}} tag='h5'>
                     Status
                 </CardHeader>
-                <CardBody>
+                <CardBody style={{ fontSize: '.875rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
                     <Row>
                         <Col
                             xs="6"
@@ -42,7 +61,7 @@ function Status() {
                         <Col
                             xs="6"
                         >
-                            Queue is Running:
+                            Queue is Running: {status.status?.running_item_uid ? 'YES' : 'NO'}
                         </Col>
                     </Row>
                     <Row>
@@ -70,17 +89,8 @@ function Status() {
                         </Col>
                     </Row>
                     <Row>
-                        <Col
-                            xs="6"
-                        >
-                            Items in History: {status.status?.items_in_history}
-                        </Col>
-                        <Col
-                            xs="6"
-                        >
-                            Items in Queue: {status.status?.items_in_queue}
-                        </Col>
-                    </Row>
+                    
+    </Row>
                 </CardBody>
             </Card>
         </div>

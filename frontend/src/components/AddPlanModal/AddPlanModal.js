@@ -21,6 +21,7 @@ import { getPlans, getDevices, getQueue } from '../../redux/serverSlice';
 import Select from 'react-select';
 import axios from 'axios';
 import InfoIcon from '../InfoIcon/InfoIcon';
+import { Plus, PlusCircle } from 'react-feather';
 
 function AddPlanModal() {
     //Add Error checking to make sure that all required fields are filled out and if they aren't disable add button
@@ -34,6 +35,7 @@ function AddPlanModal() {
     const [check, setCheck] = useState({}); //lists which parameters are edited and which ones arent
     const [placeHolderValue , setPlaceHolderValues] = useState({}); //sets the placeholder values for the dealt params
     const [planValues, setPlanValues] = useState({});
+    const [ isHover, setHover] = useState(false);
     const [deviceNames, setDevicesNames] = useState([]); //gets devices names for the dectors section
     const initialError = {
         status: false,
@@ -54,9 +56,14 @@ function AddPlanModal() {
     };
     //TODO: if detector classname does have catalog in the name do not include it in the list of detectors to add to plan
     useEffect(() => {
+        (async () => {
         if (plans.length === 0) {
             //Checks to see if the plans state in redux is empty, if it is then we call the function to populate state with devices data
-            dispatch(getPlans());
+            const val = await dispatch(getPlans());
+            if (val.payload.plans.success) {
+                const newVal = Object.keys(val.payload.plans.plans_allowed).map(key => ({ id: key }));
+                setPlanNames(newVal);
+            }
         } else {
             if (plans?.plans?.success) {
                 //const propertyNames = Object.keys(plans.plans.plans_allowed);
@@ -67,7 +74,12 @@ function AddPlanModal() {
         }
 
         if (devices.length === 0) {
-            dispatch(getDevices());
+            const valDevices = await dispatch(getDevices());
+            if (valDevices.payload.devices.success) {
+                const newDevices = Object.keys(valDevices.payload.devices.devices_allowed).map(key => ({ id: key }));
+                //console.log("new: ", newDevices);
+                setDevicesNames(newDevices);
+            }
         } else {
             if (devices?.devices?.success) {
                 const newDevices = Object.keys(devices.devices.devices_allowed).map(key => ({ id: key }));
@@ -75,6 +87,7 @@ function AddPlanModal() {
                 setDevicesNames(newDevices);
             }
         }
+        })();
     }, []);
 
     const handleSelect = (e) => {
@@ -238,13 +251,16 @@ function AddPlanModal() {
 
     return (
         <div>
-            <Card style={{ marginBottom: '10px'}} className='shadow'>
-                <CardBody style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                    <Button onClick={toggle}>
-                        Add Plan to Queue
-                    </Button>
-                </CardBody>
-            </Card>
+            
+            <div style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px', /* Adjust the size as needed */
+    height: '40px', /* Adjust the size as needed */
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
+  }}><Plus size={20} style={isHover ? {color: '#0d6efd'} : {color: 'black'}} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={toggle}/></div>
         <Modal isOpen={modal} toggle={toggle} size={'lg'} backdrop={'static'}>
             <ModalHeader toggle={toggle}>Add Plan to Queue</ModalHeader>
             <ModalBody>

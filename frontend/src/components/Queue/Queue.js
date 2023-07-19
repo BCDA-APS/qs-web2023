@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     Button,
     Row,
@@ -7,8 +7,17 @@ import {
     Col
 } from 'reactstrap';
 import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { getStatus } from '../../redux/serverSlice';
 
 function Queue() {
+    const dispatch = useDispatch();
+    const { queue, status } = useSelector(state => state.server);
+    useEffect(() => {
+        if (status.length === 0) {
+            dispatch(getStatus());
+        }
+    }, []);
     const startQueue = async () => {
         try {
           const url = 'http://localhost:3001/queue/start';
@@ -49,14 +58,12 @@ function Queue() {
                     </h5>
                     <Row>
                         <Col>
-                            <Button onClick={startQueue}>Start</Button>
+                            <Button onClick={startQueue} disabled={status.status?.running_item_uid}>Start</Button>
                         </Col>
                         <Col>
-                            <Button onClick={stopQueue}>Stop</Button>
+                            <Button onClick={stopQueue} disabled={!status.status?.running_item_uid}>Stop</Button>
                         </Col>
-                        <Col>
-                            <Button onClick={cancelQueue}>Cancel</Button>
-                        </Col>
+                        
                     </Row>
                     {/*<Row style={{ width: '100px', margin: '5px'}}>
                         <Button onClick={startQueue}>Start</Button>

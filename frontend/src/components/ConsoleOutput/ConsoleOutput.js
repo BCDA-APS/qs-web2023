@@ -24,6 +24,20 @@ function ConsoleOutput() {
     const { consoleConfig } = useConsoleConfig();
     const [timerValue, setTimerValue] = useState(null);
     const [intervalId, setIntervalId] = useState(null);
+    const inputRef = useRef();
+
+    const scrollToBottom = () => {
+        // Scroll to the bottom of the input element
+        const inputElement = inputRef.current;
+        inputElement.scrollTop = inputElement.scrollHeight;
+    };
+    
+
+    useEffect(() => {
+        console.log("here console sec");
+        scrollToBottom();
+    }, [consoleOutput]);
+
     useEffect(() => {
 
         (async () => {
@@ -130,9 +144,11 @@ function ConsoleOutput() {
     })();
     }, [consoleConfig]);
 
+
+
     return (
         <div>
-            <Card body className='shadow'>
+            <Card className='shadow'>
                 <CardBody>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
                         <div>
@@ -161,6 +177,7 @@ function ConsoleOutput() {
                     <Row>
                         <Col>
                             <Input
+                                ref={inputRef}
                                 type='textarea'
                                 readOnly={true}
                                 value={consoleOutput?.console?.text}

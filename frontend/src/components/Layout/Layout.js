@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {
     Row,
     Col,
+    Container
 } from 'reactstrap';
 
 import ConnectionControl from '../ConnectionControl/ConnectionControl';
@@ -28,55 +29,63 @@ function Layout() {
     }, []);
     return (
         <div>
-            {/*<Row>
-                <Col>
-                    <Row>
-                        <Col>
-                            <Status />
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <Queue />
-                        </Col>
-                        <Col>
-                            <PlanExecution />
-                        </Col>
-                    </Row>
-                </Col>
-                <Col>
+            <Row>
+                <Container style={{ maxWidth: '550px'}}>
+                    <QueueConsole />
+                </Container>
+                <Container style={{ maxWidth: '400px'}}>
+                    <Status />
                     <RunningPlan />
-                </Col>
-    </Row>*/}
-            <Row style={{ margin: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                </Container>
+                <Container style={{ maxWidth: '550px'}}>
+                    <History />
+                </Container>
+            </Row>
+            <Row>
+                <Container>
+                    <ConsoleOutput />
+                </Container>
+            </Row>
+            
+            
+            {/*<Row style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                 <Col>
-                <Row>
-                <Queue />
-                </Row>
-                    <Row>
-                    <PlanExecution />
-                    </Row>
-                    
-                    
+                    <QueueConsole />
                 </Col>
+                <Col>
+                    <History />
+                </Col>
+            </Row>
+            <Row>
+                <ConsoleOutput />
+    </Row>*/}
+
+            {/*<Row>
                 <Col>
                     <Status />
                 </Col>
                 <Col>
-                    <RunningPlan />
+                <PlanExecution />
                 </Col>
+               
             </Row>
             <Row style={{ margin: '10px'}}>
-                <Col sm="6">
+                <Col>
+                    
+                    <RunningPlan />
+
+                </Col>
+                <Col>
                     <QueueConsole />
                 </Col>
-                <Col sm="6">
+                <Col>
                     <History />
                 </Col>
+                
             </Row>
             <Row style={{ margin: '10px'}}>
-                <ConsoleOutput />
-            </Row>
+            <ConsoleOutput />
+</Row>*/}
         </div>
     );
 };

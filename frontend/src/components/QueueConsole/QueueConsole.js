@@ -8,25 +8,48 @@ import {
     Col,
     Label,
     FormGroup,
-    Table
+    Table,
 } from 'reactstrap';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import EditQueueModal from '../EditQueueModal/EditQueueModal';
-import { getQueue } from '../../redux/serverSlice';
+import { getQueue, getStatus } from '../../redux/serverSlice';
 import QueueItem from '../QueueItem/QueueItem';
 import EditItem from '../EditItem/EditItem';
+import ViewResults from '../ViewResults/ViewResults';
+import AddPlanModal from '../AddPlanModal/AddPlanModal';
+import Devices from '../Devices/Devices';
+import { Copy, ArrowDown, ArrowUp, Trash2, Repeat, PlayCircle, Play, StopCircle, Trash, Plus } from 'react-feather';
 
 function QueueConsole() {
     const dispatch = useDispatch();
     const [queueInfo, setQueue] = useState([]);
     const [currentPlan, setCurrentPlan] = useState(null);
-    const { queue } = useSelector(state => state.server);
+    const { queue, status } = useSelector(state => state.server);
     const [ refresh, setRefresh] = useState(false);
     const [checkedList, setCheckList] = useState([]);
+    const [isHover, setIsHover] = useState([]);
+    const [ hoverButtons, setHoverButtons ] = useState({
+        play: false,
+        stop: false,
+        clear: false,
+    });
     useEffect(() => {
-        dispatch(getQueue());
+        (async () => {
+        const val = await dispatch(getQueue());
+        if (val.payload.queue.success) {
+            const arr = val.payload.queue.items.map(() => {
+                return {copyHover: false, upHover: false, downHover: false, deleteHover: false, playHover: false};
+            });
+
+            setIsHover([...arr]);
+            console.log("arr: ", arr);
+        }
+
+        console.log("val: ", val);
+         })();
     }, [refresh]);
+
 
     const clearQueue = async () => {
         try {
@@ -40,7 +63,19 @@ function QueueConsole() {
         }
     };
 
-    const removeQueueItem = async () => {
+    const removeQueueItem = async (item) => {
+        try {
+            const url = 'http://localhost:3001/queue/delete';
+            const requestData = {
+              uid: item.item_uid
+            };
+        
+            const response = await axios.post(url, requestData);
+            console.log(response.data);
+          } catch (error) {
+            console.error(error);
+          }
+        /*
         checkedList.map(async (item) => {
             try {
                 const url = 'http://localhost:3001/queue/delete';
@@ -54,27 +89,23 @@ function QueueConsole() {
                 console.error(error);
               }
         });
-        setCheckList([]);
+        setCheckList([]);*/
         setRefresh(!refresh);
     };
 
-    const moveQueueItem = async (item, moveType) => {
+    const moveQueueItem = async (item, index, moveType) => {
+        console.log("here");
         try {
             const url = 'http://localhost:3001/queue/move';
-            let index = null;
+            let newindex = null;
             if (moveType === 'UP') {
-                index = item.index - 1;
+                newindex = index - 1;
             } else if (moveType === 'DOWN') {
-                index = item.index + 1;
-            } else if (moveType === 'TOP') {
-                index = 'front';
-            } else if (moveType === 'BOTTOM') {
-                index = 'back';
+                newindex = index + 1;
             }
-
             const payload = {
-                uid: item.item.item_uid,
-                pos_dest: index
+                uid: item.item_uid,
+                pos_dest: newindex
             };
         
             const response = await axios.post(url, payload);
@@ -110,94 +141,140 @@ function QueueConsole() {
         setCheckList([...arr]);
     };
 
+    const handleIsHover = (index, value, type) => {
+        let arr = [...isHover];
+        arr[index][type] = value;
+        setIsHover([...arr]);
+    };
+
+    const duplicateItem = async (obj) => {
+        //after_uid
+        const url = 'http://localhost:3001/queue/add';
+        //defining item to be added to the queue
+        const item = {
+            name: obj.name,
+            item_type: obj.item_type,
+            kwargs: obj?.kwargs,
+            args: obj?.args,
+        };
+        //Want duplicated item to be added after the original item
+        const response = await axios.post(url, {after_uid: obj.item_uid, item});
+        if (response.status === 200) {
+            dispatch(getQueue());
+        }
+    };
+
+    const switchLoop = async (e) => {
+        console.log("loop: ", e);
+        //const { checked } = e.target;
+        const url = 'http://localhost:3001/queue/loop';
+        const response = await axios.post(url, {mode: {loop: !status?.status?.plan_queue_mode?.loop}});
+        if (response.status === 200) {
+            dispatch(getStatus());
+        }
+    };
+
+    /*
+    http POST http://localhost:60610/api/queue/mode/set mode:='{"loop": true}'
+http POST http://localhost:60610/api/queue/mode/set mode:='{"loop": false}'
+    */
+//http POST http://localhost:60610/api/queue/item/execute item:='{"name":"count", "args":[["det1", "det2"]], "kwargs":{"num":10, "delay":1}, "item_type": "plan"}'
+    const executeItem = async (item) => {
+        console.log("item: ", item);
+        const url = 'http://localhost:3001/queue/execute';
+        const response = await axios.post(url, {item});
+        if (response.status === 200) {
+            dispatch(getStatus());
+        }
+    };
+
+    const startQueue = async () => {
+        try {
+          const url = 'http://localhost:3001/queue/start';
+          const response = await axios.post(url);
+          console.log(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+    };
+
+    const stopQueue = async () => {
+        try {
+          const url = 'http://localhost:3001/queue/stop';
+          const response = await axios.post(url);
+          console.log(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+    };
+
     return (
-        <div>
-            <Card className='shadow' body style={{ height: '650px'}}>
+        <div /*style={{ maxWidth: '580px'}}*/>
+            <Card className='shadow' style={{ maxHeight: '80%', }}>
+
                 <CardBody>
-                    <h3 style={{ textAlign: 'center'}}>Queue</h3>
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', marginBottom: '10px'}}>
-                        <Button size='sm' /*disabled={currentPlan === null ? true : currentPlan?.index === 0 ? true : false}*/ onClick={() => moveQueueItem('UP')}>Up</Button>
-                        <Button size='sm' /*disabled={currentPlan === null ? true : currentPlan?.index === (queue?.queue?.items?.length - 1) ? true : false}*/ onClick={() => moveQueueItem('DOWN')}>Down</Button>
-                        <Button size='sm' /*disabled={currentPlan === null ? true : currentPlan?.index === 0 ? true : false}*/ onClick={() => moveQueueItem('TOP')}>Top</Button>
-                        <Button size='sm' /*disabled={currentPlan === null ? true : currentPlan?.index === (queue?.queue?.items?.length - 1) ? true : false}*/ onClick={() => moveQueueItem('BOTTOM')}>Bottom</Button>
-                        <Button size='sm' onClick={() => setCheckList([])} disabled={checkedList.length === 0}>Deselect</Button>
-                        <Button size='sm' onClick={clearQueue}>Clear</Button>
-                        <Button size='sm' onClick={() => console.log("checkedList: ", checkedList)}>Loop</Button>
-                        <Button size='sm' disabled={checkedList.length < 1 ? true : false} onClick={removeQueueItem}>Delete</Button>
-                        <Button size='sm' disabled={checkedList.length < 1 ? true : false}>Duplicate</Button>
+                    <h5 style={{ textAlign: 'center'}}>Queue <span style={{ fontSize: '.875rem', fontStyle: 'italic'}}>(# of items: {status.status?.items_in_queue})</span></h5>
+                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', marginBottom: '10px', alignItems: 'center'}}>
+                    <AddPlanModal />
+                    <div style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px', /* Adjust the size as needed */
+    height: '40px', /* Adjust the size as needed */
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
+  }}><Trash onClick={clearQueue} size='20' style={hoverButtons.clear ? {color: 'blue'} : {color: 'black'}} onMouseEnter={() => setHoverButtons({...hoverButtons, clear: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, clear: false})}/></div>
+                        <Devices />
+                        
+                        <div style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px', /* Adjust the size as needed */
+    height: '40px', /* Adjust the size as needed */
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
+  }}><Play onClick={startQueue} size='20' style={hoverButtons.play ? {color: 'green'} : {color: 'black'}} onMouseEnter={() => setHoverButtons({...hoverButtons, play: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, play: false})}/></div>
+                        <div style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px', /* Adjust the size as needed */
+    height: '40px', /* Adjust the size as needed */
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
+  }}><StopCircle onClick={stopQueue} size={20} style={hoverButtons.stop ? {color: 'red'} : {color: 'black'}} onMouseEnter={() => setHoverButtons({...hoverButtons, stop: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, stop: false})}/></div>
+                        
+                        <div style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px', /* Adjust the size as needed */
+    height: '40px', /* Adjust the size as needed */
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
+  }}><Repeat size='20' onClick={switchLoop} style={status?.status?.plan_queue_mode?.loop ? {color: 'blue'} : {color: 'black'}} /></div>
+                    
+                        {/*<FormGroup switch>
+                            <Input 
+                                type="switch" 
+                                role="switch" 
+                                onChange={switchLoop}
+                                checked={status?.status?.plan_queue_mode?.loop}
+                            />
+                            <Label check>Loop</Label>
+    </FormGroup>*/}
                     </div>
-                    <Row style={{ maxHeight: '500px', overflowY: 'scroll'}}>
-                        <Table hover>
-                            <thead>
-                                <tr>
-                                    <th>
-                                    </th>
-                                    <th></th>
-                                    <th>
-                                        Name
-                                    </th>
-                                    <th style={{maxWidth: '100px'}}>
-                                        Parameters
-                                    </th>
-                                    <th>
-                                        User
-                                    </th>
-                                    <th>
-                                        Group
-                                    </th>
-                                    <th>
-                                        Edit
-                                    </th>
-                                    
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {
+                    <Row style={{ maxHeight: '450px', overflowY: 'scroll'}}>
+                        
+                        {
                                     queue?.queue?.items?.map((item, index) => {
                                         return (
-                                            <tr 
-                                                key={item.item_uid}
-                                                className={isInArr(item) ? "table-primary" : ''}
-                                                //className={item.item_uid === currentPlan?.item.item_uid ? "table-primary" : ''}
-                                            >
-                                                <th>
-                                                    <FormGroup check>
-                                                        <Input 
-                                                            type="checkbox" 
-                                                            id={item.name}
-                                                            name={index}
-                                                            onChange={handleChecked}
-                                                            checked={isInArr(item)}
-                                                        />
-                                                    </FormGroup>
-                                                </th>
-                                                <th>
-                                                    {index + 1}
-                                                </th>
-                                                <th>
-                                                    {item.name}
-                                                </th>
-                                                {/*<th style={{maxWidth: '150px', overflowX: 'scroll', whiteSpace: 'nowrap'}}>*/}
-                                                <th>
-                                                    {printParama(item.kwargs)}
-                                                </th>
-                                                {/*<th style={{maxWidth: '150px', overflowX: 'scroll', whiteSpace: 'nowrap'}}>*/}
-                                                <th>
-                                                    {item.user}
-                                                </th>
-                                                <th>
-                                                    {item.user_group}
-                                                </th>
-                                                <th>
-                                                    <EditItem queueItem={item}/>
-                                                </th>
-                                            
-                                            </tr>
+                                            <QueueItem item={item} index={index} />
                                         )
                                     })
-                                }
-                            </tbody>
-                        </Table>
+                        }
                             </Row>
                 </CardBody>
             </Card>
