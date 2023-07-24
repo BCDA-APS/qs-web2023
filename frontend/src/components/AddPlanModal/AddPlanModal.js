@@ -14,11 +14,13 @@ import {
     Label,
     InputGroup,
     InputGroupText,
-    FormGroup
+    FormGroup,
+    Tooltip
  } from 'reactstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { getPlans, getDevices, getQueue } from '../../redux/serverSlice';
 import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 import axios from 'axios';
 import InfoIcon from '../InfoIcon/InfoIcon';
 import { Plus, PlusCircle } from 'react-feather';
@@ -43,7 +45,9 @@ function AddPlanModal() {
     };
     const [error, setError] = useState(initialError);
     const [planError, setPlanError] = useState({});
-//TODO: Not everything is a default <= args is not default
+    const [tooltipOpen, setTooltipOpen] = useState(false);
+    const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
     const handleClose = () => {
         setModal(!modal);
         setCurrentPlan(null);
@@ -54,7 +58,7 @@ function AddPlanModal() {
         setPlanValues({});
         setPlanError({});
     };
-    //TODO: if detector classname does have catalog in the name do not include it in the list of detectors to add to plan
+
     useEffect(() => {
         (async () => {
         if (plans.length === 0) {
@@ -76,15 +80,16 @@ function AddPlanModal() {
         if (devices.length === 0) {
             const valDevices = await dispatch(getDevices());
             if (valDevices.payload.devices.success) {
-                const newDevices = Object.keys(valDevices.payload.devices.devices_allowed).map(key => ({ id: key }));
-                //console.log("new: ", newDevices);
-                setDevicesNames(newDevices);
+                const deviceListNew = Object.entries(valDevices.payload.devices.devices_allowed).map(([name, obj]) => ({ name, ...obj }));
+                const filteredList = deviceListNew?.filter(obj => !obj.classname.toLowerCase().includes('catalog'));
+                const newArr = filteredList.map(item => { return {id: item.name}});
+                setDevicesNames(newArr);
             }
         } else {
             if (devices?.devices?.success) {
-                const newDevices = Object.keys(devices.devices.devices_allowed).map(key => ({ id: key }));
-                //console.log("new: ", newDevices);
-                setDevicesNames(newDevices);
+                const filteredList = devices?.deviceList?.filter(obj => !obj.classname.toLowerCase().includes('catalog'));
+                const newArr = filteredList.map(item => { return {id: item.name}});
+                setDevicesNames(newArr);
             }
         }
         })();
@@ -103,7 +108,11 @@ function AddPlanModal() {
                     obj[item.name] = {check: false, default: false};
                     tempPlace[item.name] = `${item.default} (Default Value)`;
                 } else {
-                    obj[item.name] = {check: true, default: true};
+                    if (item.name === 'args') {
+                        obj[item.name] = {check: false, default: false};
+                    } else {
+                        obj[item.name] = {check: true, default: true};
+                    }
                     tempPlace[item.name] = `Enter a Value`;
                     tempValue[item.name] = '';
                 }
@@ -249,18 +258,42 @@ function AddPlanModal() {
         })
     };
 
+    const handleCreate = (e) => {
+        console.log("ecreate: ", e);
+        let temp = [...deviceNames];
+        temp.push({id: e});
+        setDevicesNames([...temp]);
+    };
+
     return (
         <div>
             
-            <div style={{
+            <div onClick={toggle} id='addPlanTool' onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={ isHover ? {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     width: '40px', /* Adjust the size as needed */
     height: '40px', /* Adjust the size as needed */
     borderRadius: '50%',
-    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
-  }}><Plus size={20} style={isHover ? {color: '#0d6efd'} : {color: 'black'}} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={toggle}/></div>
+    boxShadow: '0 .5rem 1rem rgba(0,0,255,.25)', /* Customize the shadow as desired */
+  }: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px',
+    height: '40px', 
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', 
+  }}><Plus size={20} style={isHover ? {color: 'rgb(0,0,255)'} : {color: 'black'}} /></div>
+        <Tooltip
+        placement={'bottom'}
+        isOpen={tooltipOpen}
+        target={'addPlanTool'}
+        toggle={toggleTooltip}
+      >
+        Add New Plan to Queue
+      </Tooltip>
+        
         <Modal isOpen={modal} toggle={toggle} size={'lg'} backdrop={'static'}>
             <ModalHeader toggle={toggle}>Add Plan to Queue</ModalHeader>
             <ModalBody>
@@ -303,7 +336,7 @@ function AddPlanModal() {
                                     <th>
                                         Edit
                                     </th>
-                                    <th>
+                                    <th style={{ Width: '450px'}}>
                                         Value
                                     </th>
                                 </tr>
@@ -315,7 +348,7 @@ function AddPlanModal() {
                                             <tr>
                                                 <th style={{ display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                                     {item.name}
-                                                    <InfoIcon header={item.name} content={item.description} id={item.name.concat(`${index}`)}/>
+                                                    {item.hasOwnProperty('description') && <InfoIcon header={item.name} content={item.description} id={item.name.concat(`${index}`)}/>}
                                                 </th>
                                                 <th>
                                                     <FormGroup check>
@@ -329,9 +362,9 @@ function AddPlanModal() {
                                                         />
                                                     </FormGroup>
                                                 </th>
-                                                <th>
+                                                <th style={{ width: '450px'}}>
                                                 {item.name === 'detectors' ? 
-                                                <Select
+                                                <><Select
                                                     options={deviceNames}
                                                     getOptionValue={(options) => options['id']}
                                                     getOptionLabel={(options) => options['id']}
@@ -339,7 +372,17 @@ function AddPlanModal() {
                                                     isMulti={true}
                                                     onChange={handleSelectDetectors}
                                                     styles={planError['detectors'] && errorDropDown}
-                                                /> :
+                                                />
+                                                <CreatableSelect
+                                                    options={deviceNames}
+                                                    getOptionValue={(options) => options['id']}
+                                                    getOptionLabel={(options) => options['id']}
+                                                    isClearable={true}
+                                                    isMulti={true}
+                                                    onCreateOption={handleCreate}
+                                                    getNewOptionData={inputValue => ({ id: inputValue })}
+                                                />
+                                                </> :
                                                     <Input 
                                                         value={planValues[item.name] === null? '' : planValues[item.name]} //Fix so that it shows array
                                                         readOnly={!check[item.name].check}

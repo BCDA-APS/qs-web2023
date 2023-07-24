@@ -12,7 +12,9 @@ const { PORT } = require("./config")
 const app = express();
 
 app.use(cors());
+
 app.use(express.json());
+
 app.use("/devices", devicesRouter);
 
 app.use("/history", historyRouter);
@@ -29,8 +31,8 @@ app.use("/environment", environmentRouter);
 
 /** Generic error handler; anything unhandled goes here. */
 app.use((err, req, res, next) => {
-  const status = err.status || 500
-  const message = err.message
+  const status = err.status || 500;
+  const message = err.message;
 
   return res.status(status).json({
     error: { message, status },

@@ -24,22 +24,29 @@ function Status() {
     useEffect(() => {
         dispatch(getStatus());
     }, []);
-
+/*
     useEffect(() => {
         (async () => {
-        console.log("herein ");
+        //console.log("herein ");
+        const val = await getItem("2689a07c-43e7-4f81-be05-6840d03134a0");
+            //console.log("valid: ", val);
+
         if (status.length !== 0 && status?.status?.running_item_uid !== null) {
-            const val = await getItem(status?.status?.running_item_uid);
-            console.log("valid: ", val);
+            
         }
         })();
-    }, [status?.status?.running_item_uid]);
+    }, [status?.status?.running_item_uid]);*/
 
     const getItem = async (id) => {
         try {
-            console.log("status id: ", id);
+            //console.log("status id: ", id);
             const url = 'http://localhost:3001/queue/get/item';
-            const response = await axios.get(url, {id});
+            const dataToSend = {
+                param1: "2689a07c-43e7-4f81-be05-6840d03134a0",
+            }
+            const response = await axios.get(url, {
+                params: dataToSend,
+            });
             return response.data;
         } catch (error) {
             console.error(error);

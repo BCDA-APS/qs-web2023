@@ -66,7 +66,7 @@ export const serverSlice = createSlice({
         plans: [],
         devices: [],
         queue: [],
-        consoleOutput: {},
+        consoleOutput: [],
         status: [],
         history: [],
     },

@@ -15,22 +15,26 @@ import {
     InputGroup,
     InputGroupText,
     FormGroup,
-    Col
+    Col,
+    Tooltip
  } from 'reactstrap';
 import { Check, X } from 'react-feather';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { getDevices } from '../../redux/serverSlice';
-import { Search } from 'react-feather';
+import { Search, Package } from 'react-feather';
+import '../Scrollbar/secscroll.css';
 
 function Devices() {
     //When selecting a dectetor have a multi select where users can select one or more dectors from the list of devices
     //parse it into the list
     const dispatch = useDispatch(); 
     const [modal, setModal] = useState(false);
-    
+    const [tooltipOpen, setTooltipOpen] = useState(false);
+    const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
     const { devices } = useSelector(state => state.server);
     const [ currentList, setCurrentList ] = useState([]);
+    const [ isHover, setHover] = useState(false);
     const initialSearch = {
         search: '',
         module: '',
@@ -145,15 +149,31 @@ function Devices() {
     };
     return (
         <div>
-            <div style={{
+            <div onClick={toggle} id='devicesTool' onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={ isHover ? {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '40px', /* Adjust the size as needed */
-    height: '40px', /* Adjust the size as needed */
+    width: '40px',
+    height: '40px',
     borderRadius: '50%',
-    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
-  }}><Search size={20} onClick={toggle}/></div>
+    boxShadow: '0 .5rem 1rem rgba(153, 51, 255,.25)', 
+  }: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)',
+  }}><Package size={20} style={isHover ? {color: 'rgb(153, 51, 255)'} : {color: 'black'}} /></div>
+    <Tooltip
+        placement={'bottom'}
+        isOpen={tooltipOpen}
+        target={'devicesTool'}
+        toggle={toggleTooltip}
+      >
+        Allowed Devices
+      </Tooltip>
             <Modal isOpen={modal} toggle={toggle} size={'xl'}>
                 <ModalHeader toggle={toggle}>Devices</ModalHeader>
                 <ModalBody>
@@ -358,7 +378,7 @@ function Devices() {
                         </CardBody>
                     </Card>
                     <Card className='shadow' body>
-                        <CardBody style={{ maxHeight: '500px', overflowY: 'scroll', height: '100%'}}>
+                        <CardBody className="scrollbox" style={{ maxHeight: '500px', overflowY: 'scroll', height: '100%'}}>
                         {currentList?.length > 0 ? <Table striped>
                             <thead>
                                 <tr style={{ textAlign: 'center'}}>

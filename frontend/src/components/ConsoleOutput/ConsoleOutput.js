@@ -18,6 +18,8 @@ function ConsoleOutput() {
     //TODO: if something in the console changes update the entire site too
     const [consoleInfo, setConsole ] = useState("");
     const [consoleUid, setConsoleUid] = useState(null);
+    const [maxLines, setMaxLines] = useState(1000);
+    const [autoScroll, setAutoScroll] = useState(false);
     
     const dispatch = useDispatch(); 
     const { consoleOutput } = useSelector(state => state.server);
@@ -25,36 +27,38 @@ function ConsoleOutput() {
     const [timerValue, setTimerValue] = useState(null);
     const [intervalId, setIntervalId] = useState(null);
     const inputRef = useRef();
-
-    const scrollToBottom = () => {
-        // Scroll to the bottom of the input element
-        const inputElement = inputRef.current;
-        inputElement.scrollTop = inputElement.scrollHeight;
-    };
-    
-
-    useEffect(() => {
-        console.log("here console sec");
-        scrollToBottom();
-    }, [consoleOutput]);
+    var objDiv = document.getElementById("consoleSection");
+    //split array by the value that is there
 
     useEffect(() => {
 
         (async () => {
-        
-        if (Object.keys(consoleOutput).length === 0) {
-            dispatch(getConsole());
+        //Gets the console output for the first time
+        if (consoleOutput.length === 0) {
+            const initConsoleVal = await dispatch(getConsole());
+            if (initConsoleVal.payload.console.success) {
+                const consoleVal = initConsoleVal.payload.console.text.split('\n');
+                console.log("maxLines: ", maxLines);
+                if (maxLines >= consoleVal.length) {
+                    setConsole(initConsoleVal.payload.console.text);
+                } else {
+                    const diff = consoleVal.length - maxLines;
+                    consoleVal.splice(0, diff);
+                    const newConsoleString = consoleVal.join('\n');
+                    setConsole(newConsoleString);
+                }
+            }
+            
         }
+        console.log("stuffc");
         let currentVal = consoleUid;
+        //Gets the first uid of the console
         if (consoleUid === null) {
-            console.log("goingst in here");
             const { data, error } = await ServerCalls.getConsoleOutputUID();
-            console.log("data3: ", data);
             if (data?.consoleUid?.success) {
                 currentVal = data?.consoleUid?.console_output_uid;
                 setConsoleUid(currentVal);
             }
-            //console.log("value: ", value);
         }
 
         const checkId = async () => {
@@ -74,15 +78,38 @@ function ConsoleOutput() {
             console.log("inter: ", intervalId);
             clearInterval(intervalId);
         }
-
+        console.log("first: ", currentVal);
+        
         const timer = setInterval(async () => {
             const { data, error } = await ServerCalls.getConsoleOutputUID();
             if (data?.consoleUid?.success) {
                 if (data.consoleUid?.console_output_uid !== currentVal) {
+                    console.log("not in the same: ", currentVal);
+                    console.log("sec: ", data.consoleUid?.console_output_uid);
                     currentVal = data.consoleUid?.console_output_uid;
                     setConsoleUid(currentVal);
                     //console.log("is not the same: ", newValue.payload?.consoleUid?.console_output_uid);
-                    dispatch(getConsole());
+                    
+                    const newConsoleUpdate = await dispatch(getConsole());
+                    //console.log("updatC: ", newConsoleUpdate);
+                    if (newConsoleUpdate.payload.console.success) {
+                        const consoleVal2 = newConsoleUpdate.payload.console.text.split('\n');
+                        //console.log("con: ", consoleVal2);
+                        console.log("maxLines: ", maxLines);
+                        if (maxLines >= consoleVal2.length) {
+                            
+                            //console.log("its okay: ", consoleVal2.length);
+                            setConsole(newConsoleUpdate.payload.console.text);
+                        } else {
+                            const diff2 = consoleVal2.length - maxLines;
+                            console.log("diff2: ", diff2);
+                            consoleVal2.splice(0, diff2);
+                            //console.log("consolenew2: ", consoleVal2);
+                            const newConsoleString2 = consoleVal2.join('\n');
+                            //console.log("newSt2: ", newConsoleString2);
+                            setConsole(newConsoleString2);
+                        }
+                    }
                     dispatch(getQueue());
                     dispatch(getHistory());
                     dispatch(getStatus());
@@ -94,9 +121,10 @@ function ConsoleOutput() {
 
         setIntervalId(timer);
         return () => {
+            console.log("went in here con");
             clearInterval(timer);
         };
-
+        
         /*
         //checkId();
         let interval = inter;
@@ -142,9 +170,30 @@ function ConsoleOutput() {
           // Clean up the timer when the component unmounts
           return () => clearInterval(timer);*/
     })();
-    }, [consoleConfig]);
+    }, [consoleConfig, maxLines]);
 
 
+    const handleMaxLines = (e) => {
+        console.log("e: maxLines: ", e);
+        const { value } = e.target;
+        if (value < 10 || value > 1000 || value === '' || value === null || value === undefined) {
+            setMaxLines(10);
+        } else {
+            setMaxLines(Number(value));
+        }
+    }
+
+    const handleCheckedScroll = (e) => {
+        const { checked } = e.target;
+        
+        if (checked) {
+            
+            objDiv.scrollTop = objDiv.scrollHeight;
+        } else {
+            objDiv.scrollTop = 0
+        }
+        setAutoScroll(checked);
+    };
 
     return (
         <div>
@@ -152,12 +201,17 @@ function ConsoleOutput() {
                 <CardBody>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
                         <div>
-                            <Input type="checkbox" />
+                            <Input 
+                                type="checkbox"
+                                checked={autoScroll}
+                                onChange={handleCheckedScroll}
+                            />
                             {' '}
                             <Label check>
                             Autoscroll
                             </Label>
                         </div>
+                        <Button onClick={() => console.log("max: ", maxLines)}>Click</Button>
                         <div  style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '300px', justifyContent: 'space-between'}}>
                             <div style={{ display: 'flex', flexDirection: 'row'}}>
                                 <Label style={{ marginRight: '5px'}}>
@@ -167,6 +221,11 @@ function ConsoleOutput() {
                                 type={'number'}
                                 style={{ width: '100px'}}
                                 size={'sm'}
+                                value={maxLines}
+                                min="10" 
+                                step="1"
+                                max='1000'
+                                onChange={handleMaxLines}
                                 />
                             </div>
                             <Button onClick={() => setConsole("")}>
@@ -179,8 +238,9 @@ function ConsoleOutput() {
                             <Input
                                 ref={inputRef}
                                 type='textarea'
+                                id='consoleSection'
                                 readOnly={true}
-                                value={consoleOutput?.console?.text}
+                                value={consoleInfo}
                             />
                         </Col>
                     </Row>

@@ -1,3 +1,40 @@
+{/*<Col xs='1'>
+                        <Menu onClick={() => setIsOpen(!isOpen)} id={`menuControls${props.index}`}/>
+                        <UncontrolledPopover
+                            placement="bottom"
+                            target={`menuControls${props.index}`}
+                            trigger="legacy"
+                            isOpen={isOpen}
+                            onMouseLeave={() => setIsOpen(!isOpen)}
+                        >
+                            <PopoverBody style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '200px'}}>
+
+                                <EditItem queueItem={props.item} setIsOpen={setIsOpen} isOpen={isOpen}/>
+                                <Copy onClick={() => {duplicateItem(props.item); setIsOpen(!isOpen)}}/>
+                                <Trash onClick={() => {removeQueueItem(props.item); setIsOpen(!isOpen)}}/>
+                                <Play />
+                                {props.index > 0 && <ChevronsUp />}
+                                {props.index < (queue?.queue?.items?.length - 1) && <ChevronsDown />}
+                            </PopoverBody>
+                        </UncontrolledPopover>
+    </Col>*/}
+
+/*
+        checkedList.map(async (item) => {
+            try {
+                const url = 'http://localhost:3001/queue/delete';
+                const requestData = {
+                  uid: item.item_uid
+                };
+            
+                const response = await axios.post(url, requestData);
+                console.log(response.data);
+              } catch (error) {
+                console.error(error);
+              }
+        });
+        setCheckList([]);*/
+
 <Table hover>
                             <thead>
                                 <tr>

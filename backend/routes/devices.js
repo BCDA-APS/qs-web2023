@@ -1,12 +1,14 @@
 const express = require("express")
 const router = express.Router()
 const axios = require('axios');
+const { API_URL } = require("../config");
+
+//Routes to get information regarding devices
 
 router.get("/allowed", async (req, res, next) => {
     try {
         let val = null;
-        const value = await axios.get("http://otz.xray.aps.anl.gov:60610/api/devices/allowed");
-        console.log("value: ", value);
+        const value = await axios.get(`${API_URL}/api/devices/allowed`);
         if (value.status === 200) {
             val = value.data;
         }

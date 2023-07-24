@@ -9,6 +9,7 @@ import {
     Label,
     FormGroup,
     Table,
+    Tooltip
 } from 'reactstrap';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,20 +21,35 @@ import ViewResults from '../ViewResults/ViewResults';
 import AddPlanModal from '../AddPlanModal/AddPlanModal';
 import Devices from '../Devices/Devices';
 import { Copy, ArrowDown, ArrowUp, Trash2, Repeat, PlayCircle, Play, StopCircle, Trash, Plus } from 'react-feather';
+import '../Scrollbar/secscroll.css';
 
 function QueueConsole() {
     const dispatch = useDispatch();
-    const [queueInfo, setQueue] = useState([]);
     const [currentPlan, setCurrentPlan] = useState(null);
     const { queue, status } = useSelector(state => state.server);
     const [ refresh, setRefresh] = useState(false);
     const [checkedList, setCheckList] = useState([]);
     const [isHover, setIsHover] = useState([]);
+
     const [ hoverButtons, setHoverButtons ] = useState({
         play: false,
         stop: false,
         clear: false,
+        loop: false,
     });
+
+    const [tooltipOpen, setTooltipOpen] = useState({
+        clear: false, 
+        play: false,
+        stop: false,
+        cancel: false,
+        loop: false,
+    });
+
+    const toggleTooltip = (name) => {
+        setTooltipOpen({...tooltipOpen, [name]: !tooltipOpen[name]});
+    };
+
     useEffect(() => {
         (async () => {
         const val = await dispatch(getQueue());
@@ -43,10 +59,7 @@ function QueueConsole() {
             });
 
             setIsHover([...arr]);
-            console.log("arr: ", arr);
         }
-
-        console.log("val: ", val);
          })();
     }, [refresh]);
 
@@ -75,21 +88,6 @@ function QueueConsole() {
           } catch (error) {
             console.error(error);
           }
-        /*
-        checkedList.map(async (item) => {
-            try {
-                const url = 'http://localhost:3001/queue/delete';
-                const requestData = {
-                  uid: item.item_uid
-                };
-            
-                const response = await axios.post(url, requestData);
-                console.log(response.data);
-              } catch (error) {
-                console.error(error);
-              }
-        });
-        setCheckList([]);*/
         setRefresh(!refresh);
     };
 
@@ -174,20 +172,6 @@ function QueueConsole() {
         }
     };
 
-    /*
-    http POST http://localhost:60610/api/queue/mode/set mode:='{"loop": true}'
-http POST http://localhost:60610/api/queue/mode/set mode:='{"loop": false}'
-    */
-//http POST http://localhost:60610/api/queue/item/execute item:='{"name":"count", "args":[["det1", "det2"]], "kwargs":{"num":10, "delay":1}, "item_type": "plan"}'
-    const executeItem = async (item) => {
-        console.log("item: ", item);
-        const url = 'http://localhost:3001/queue/execute';
-        const response = await axios.post(url, {item});
-        if (response.status === 200) {
-            dispatch(getStatus());
-        }
-    };
-
     const startQueue = async () => {
         try {
           const url = 'http://localhost:3001/queue/start';
@@ -210,63 +194,138 @@ http POST http://localhost:60610/api/queue/mode/set mode:='{"loop": false}'
 
     return (
         <div /*style={{ maxWidth: '580px'}}*/>
-            <Card className='shadow' style={{ maxHeight: '80%', }}>
-
-                <CardBody>
+            
                     <h5 style={{ textAlign: 'center'}}>Queue <span style={{ fontSize: '.875rem', fontStyle: 'italic'}}>(# of items: {status.status?.items_in_queue})</span></h5>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', marginBottom: '10px', alignItems: 'center'}}>
                     <AddPlanModal />
-                    <div style={{
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '40px', /* Adjust the size as needed */
-    height: '40px', /* Adjust the size as needed */
-    borderRadius: '50%',
-    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
-  }}><Trash onClick={clearQueue} size='20' style={hoverButtons.clear ? {color: 'blue'} : {color: 'black'}} onMouseEnter={() => setHoverButtons({...hoverButtons, clear: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, clear: false})}/></div>
+                    <Button disabled={queue?.queue?.items.length === 0} onClick={clearQueue} id='clearTooltip' onMouseEnter={() => setHoverButtons({...hoverButtons, clear: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, clear: false})} style={hoverButtons.clear ? {
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        boxShadow: '0 .5rem 1rem rgba(204,0,0,.25)',
+                        background: 'white',
+                        border: 'unset',
+                        padding: 'unset'
+                    } : {
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: 'white',
+                        boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)',
+                        border: 'unset',
+                        padding: 'unset'
+                    }}>
+                        <Trash  size='20' style={hoverButtons.clear ? {color: 'rgb(204,0,0)'} : {color: 'black'}} />
+                    </Button>
+                    <Tooltip
+                        placement={'bottom'}
+                        isOpen={tooltipOpen.clear}
+                        target={'clearTooltip'}
+                        toggle={() => toggleTooltip('clear')}
+                    >
+                        Clear Queue
+                    </Tooltip>
                         <Devices />
                         
-                        <div style={{
+                        <Button disabled={status.status?.running_item_uid} id='startQueueTooltip' onMouseEnter={() => setHoverButtons({...hoverButtons, play: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, play: false})} onClick={startQueue} 
+                        style={hoverButtons.play ? {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '40px', /* Adjust the size as needed */
-    height: '40px', /* Adjust the size as needed */
+    width: '40px', 
+    height: '40px',
     borderRadius: '50%',
-    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
-  }}><Play onClick={startQueue} size='20' style={hoverButtons.play ? {color: 'green'} : {color: 'black'}} onMouseEnter={() => setHoverButtons({...hoverButtons, play: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, play: false})}/></div>
-                        <div style={{
+    boxShadow: '0 .5rem 1rem rgba(0,204,0,.25)',
+    background: 'white',
+    border: 'unset',
+    padding: 'unset'
+  }: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '40px', /* Adjust the size as needed */
-    height: '40px', /* Adjust the size as needed */
+    width: '40px', 
+    height: '40px',
     borderRadius: '50%',
-    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
-  }}><StopCircle onClick={stopQueue} size={20} style={hoverButtons.stop ? {color: 'red'} : {color: 'black'}} onMouseEnter={() => setHoverButtons({...hoverButtons, stop: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, stop: false})}/></div>
-                        
-                        <div style={{
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)',
+    background: 'white',
+    border: 'unset',
+    padding: 'unset'
+  }}><PlayCircle size='20' style={hoverButtons.play ? {color: 'rgb(0,204,0)'} : {color: 'black'}} /></Button>
+                        <Tooltip
+                        placement={'bottom'}
+                        isOpen={tooltipOpen.play}
+                        target={'startQueueTooltip'}
+                        toggle={() => toggleTooltip('play')}
+                    >
+                        Start Queue
+                    </Tooltip>
+                        <Button onClick={stopQueue} disabled={!status.status?.running_item_uid} onMouseEnter={() => setHoverButtons({...hoverButtons, stop: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, stop: false})} id='stopQueueTooltip' 
+                        style={hoverButtons.stop ? {
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            boxShadow: '0 .5rem 1rem rgba(204,0,0,.25)',
+                            background: 'white',
+                            border: 'unset',
+                            padding: 'unset'
+                        } : {
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: 'white', border: 'unset',
+                            boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)',
+                            padding: 'unset'
+                        }}><StopCircle  size={20} style={hoverButtons.stop ? {color: 'rgb(204,0,0)'} : {color: 'black'}} /></Button>
+                        <Tooltip
+                        placement={'bottom'}
+                        isOpen={tooltipOpen.stop}
+                        target={'stopQueueTooltip'}
+                        toggle={() => toggleTooltip('stop')}
+                    >
+                        Stop Queue
+                    </Tooltip>
+                        <Button onClick={switchLoop} onMouseEnter={() => setHoverButtons({...hoverButtons, loop: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, loop: false})} id='loopQueueTooltip' style={hoverButtons.loop || status?.status?.plan_queue_mode?.loop ? {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '40px', /* Adjust the size as needed */
-    height: '40px', /* Adjust the size as needed */
+    width: '40px', 
+    height: '40px',
     borderRadius: '50%',
-    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', /* Customize the shadow as desired */
-  }}><Repeat size='20' onClick={switchLoop} style={status?.status?.plan_queue_mode?.loop ? {color: 'blue'} : {color: 'black'}} /></div>
-                    
-                        {/*<FormGroup switch>
-                            <Input 
-                                type="switch" 
-                                role="switch" 
-                                onChange={switchLoop}
-                                checked={status?.status?.plan_queue_mode?.loop}
-                            />
-                            <Label check>Loop</Label>
-    </FormGroup>*/}
+    boxShadow: '0 .5rem 1rem rgba(51,153,255,.25)', 
+    background: 'white', border: 'unset', padding: 'unset'
+  }: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px', 
+    height: '40px', 
+    borderRadius: '50%',
+    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)', 
+    background: 'white', border: 'unset',
+    padding: 'unset'
+  }}><Repeat size='20'  style={hoverButtons.loop || status?.status?.plan_queue_mode?.loop ? {color: 'rgb(51,153,255)'} : {color: 'black'}} /></Button>
+                    <Tooltip
+                        placement={'bottom'}
+                        isOpen={tooltipOpen.loop}
+                        target={'loopQueueTooltip'}
+                        toggle={() => toggleTooltip('loop')}
+                    >
+                        Enable Queue Loop
+                    </Tooltip>              
                     </div>
-                    <Row style={{ maxHeight: '450px', overflowY: 'scroll'}}>
+                    <Row className="scrollbox" style={{ maxHeight: '450px', overflowY: 'scroll'}}>
                         
                         {
                                     queue?.queue?.items?.map((item, index) => {
@@ -276,8 +335,7 @@ http POST http://localhost:60610/api/queue/mode/set mode:='{"loop": false}'
                                     })
                         }
                             </Row>
-                </CardBody>
-            </Card>
+                
         </div>
     );
 };

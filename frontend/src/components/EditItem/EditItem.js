@@ -14,17 +14,19 @@ import {
     Label,
     InputGroup,
     InputGroupText,
-    FormGroup
+    FormGroup,
+    Tooltip
  } from 'reactstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { getPlans, getDevices, getQueue } from '../../redux/serverSlice';
 import Select from 'react-select';
 import axios from 'axios';
 import InfoIcon from '../InfoIcon/InfoIcon';
-import { Edit } from 'react-feather';
-
-function EditItem({ queueItem, setIsOpen, isOpen }) {
+import { Edit, Info } from 'react-feather';
+function EditItem({ queueItem }) {
     //TODO: instead of disaptch the consoluid check just use the axios api call
+    //TODO: fix how the data is being displayed espically in the input sections cause they have quotes
+
     //Add Error checking to make sure that all required fields are filled out and if they aren't disable add button
     const dispatch = useDispatch(); 
     const [currentPlan, setCurrentPlan] = useState(null);
@@ -59,7 +61,7 @@ function EditItem({ queueItem, setIsOpen, isOpen }) {
         console.log("plans: ", plans.plans.success);
         console.log("mo: ", modal);
         if (!modal) {
-            
+    
             if (plans.plans.success) {
                 console.log("here")
                 //Gets the plan details of the current plan that is being edited
@@ -75,7 +77,11 @@ function EditItem({ queueItem, setIsOpen, isOpen }) {
                         obj[item.name] = {check: false, default: false};
                         tempPlace[item.name] = `${item.default} (Default Value)`;
                     } else {
-                        obj[item.name] = {check: true, default: true};
+                        if (item.name === 'args') {
+                            obj[item.name] = {check: false, default: false};
+                        } else {
+                            obj[item.name] = {check: true, default: true};
+                        }
                         tempPlace[item.name] = `Enter a Value`;
                         tempValue[item.name] = '';
                     }
@@ -104,16 +110,15 @@ function EditItem({ queueItem, setIsOpen, isOpen }) {
             }       
             
             if (devices?.devices?.success) {
-                const newDevices = Object.keys(devices.devices.devices_allowed).map(key => ({ id: key }));
-                //console.log("new: ", newDevices);
-                setDevicesNames(newDevices);
+                const filteredList = devices?.deviceList?.filter(obj => !obj.classname.toLowerCase().includes('catalog'));
+                const newArr = filteredList.map(item => { return {id: item.name}});
+                setDevicesNames(newArr);
             }
         
         }
         setModal(!modal);
         //setIsOpen(!isOpen);
     };
-    //TODO: if detector classname does have catalog in the name do not include it in the list of detectors to add to plan
     /*useEffect(() => {
         if (plans.plans.success) {
             //Gets the plan details of the current plan that is being edited
@@ -308,7 +313,7 @@ function EditItem({ queueItem, setIsOpen, isOpen }) {
                                     <th>
                                         Edit
                                     </th>
-                                    <th>
+                                    <th style={{ width: '450px'}}>
                                         Value
                                     </th>
                                 </tr>
@@ -320,8 +325,8 @@ function EditItem({ queueItem, setIsOpen, isOpen }) {
                                             <tr>
                                                 <th style={{ display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                                     {item.name}
-                                                    <InfoIcon header={item.name} content={item.description} id={item.name.concat(`${index}`)}/>
-                                            
+                                                    
+                                                    {item.hasOwnProperty('description') && <InfoIcon header={item.name} content={item.description} id={`tooltip${index}`} />}
                                                 </th>
                                                 <th>
                                                     <FormGroup check>
@@ -335,7 +340,7 @@ function EditItem({ queueItem, setIsOpen, isOpen }) {
                                                         />
                                                     </FormGroup>
                                                 </th>
-                                                <th>
+                                                <th style={{ width: '450px'}}>
                                                 {item.name === 'detectors' ? 
                                                 <Select
                                                     value={planValues[item.name]}

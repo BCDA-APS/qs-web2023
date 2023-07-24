@@ -1,0 +1,11 @@
+
+.scrollhost::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollhost {
+    overflow: auto;
+    height: calc(100vh - 20px);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
