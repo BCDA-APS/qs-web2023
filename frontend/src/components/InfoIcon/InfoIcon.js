@@ -1,15 +1,15 @@
 import {Info} from "react-feather";
 import React, {useState} from "react";
 import {
-    UncontrolledPopover, 
-    PopoverHeader, 
-    PopoverBody,
     Tooltip
 } from "reactstrap";
 
-const InfoIcon = ({ header, content, id}) => {
+const InfoIcon = ({ content, id }) => {
+    //Value used to set hover state of button
     const [ isHover, setHover] = useState(false);
+    //Value used to set whether the tooltip is open or closed
     const [tooltipOpen, setTooltipOpen] = useState(false);
+    //Function to change state of the tooltip
     const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
     return (
@@ -23,19 +23,6 @@ const InfoIcon = ({ header, content, id}) => {
             >
                 {content}
             </Tooltip>
-            {/*<Info size={20} style={isHover ? {color: '#0d6efd', margin: '10px'} : {color: 'black', margin: '10px'}} id={id} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}/>
-            <UncontrolledPopover
-                placement="right"
-                target={id}
-                trigger="legacy"
-            >
-                <PopoverHeader>
-                    {header}
-                </PopoverHeader>
-                <PopoverBody>
-                    {content}
-                </PopoverBody>
-    </UncontrolledPopover>*/}
         </div>
     );
 }

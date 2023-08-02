@@ -1,5 +1,9 @@
 import axios from "axios"
+import { BACKEND_URL } from "../config";
+
 class ServerCalls {
+    //Routes to our backend server
+
     constructor(remoteHostUrl) {
         this.remoteHostUrl = remoteHostUrl;
     };
@@ -33,8 +37,11 @@ class ServerCalls {
         return await this.request({ endpoint: `plans/resume`, method: `POST`});
     };
 
+    async stopPlans() {
+        return await this.request({ endpoint: `plans/stop`, method: `POST`});
+    };
+
     async pausePlans(data) {
-        console.log("input pause: ", data);
         return await this.request({ endpoint: `plans/pause`, method: `POST`, data});
     };
 
@@ -69,10 +76,6 @@ class ServerCalls {
     async clearHistory() {
         return await this.request({ endpoint: `history/clear`, method: `POST`});
     };
-    /*
-    async () {
-        return await this.request({ endpoint: ``, method: ``});
-    };*/
 
     async getQueue() {
         return await this.request({ endpoint: `queue`, method: `GET`});
@@ -83,13 +86,35 @@ class ServerCalls {
     };
 
     async deletePlanFromQueue(data) {
-        console.log("del q: ", data);
         return await this.request({ endpoint: `queue/delete`, method: `POST`, data});
     };
 
+    async switchLoopQueue(data) {
+        return await this.request({ endpoint: `queue/loop`, method: `POST`, data});
+    };
+
     async movePlanInQueue(data) {
-        console.log("move q: ", data);
         return await this.request({ endpoint: `queue/move`, method: `POST`, data});
+    };
+
+    async addToQueue(data) {
+        return await this.request({ endpoint: `queue/add`, method: `POST`, data});
+    };
+
+    async editItem(data) {
+        return await this.request({ endpoint: `queue/update`, method: `POST`, data});
+    };
+
+    async updateItemInQueue(data) {
+        return await this.request({ endpoint: `queue/update`, method: `POST`, data});
+    };
+
+    async batchToQueue(data) {
+        return await this.request({ endpoint: `queue/add/batch`, method: `POST`, data});
+    };
+
+    async executeItemInQueue(data) {
+        return await this.request({ endpoint: `queue/execute`, method: `POST`, data});
     };
 
     async startQueue() {
@@ -104,11 +129,15 @@ class ServerCalls {
         return await this.request({ endpoint: `queue/cancel`, method: `POST`});
     };
 
+    async getActiveRuns() {
+        return await this.request({ endpoint: `queue/runs/active`, method: `GET`});
+    };
+
     async getStatus() {
         return await this.request({ endpoint: `status`, method: `GET`});
     };
 }
 
-const SERVERDATA = new ServerCalls("http://localhost:3001");
+const SERVERDATA = new ServerCalls(BACKEND_URL);
 
 export default SERVERDATA;

@@ -1,199 +1,107 @@
 import React, {useState, useEffect} from 'react';
 import {
-    Card,
-    CardBody,
     Button,
-    Input,
     Row,
-    Col,
-    Label,
-    FormGroup,
-    Table,
-    Tooltip
+    Tooltip,
+    Col
 } from 'reactstrap';
-import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import EditQueueModal from '../EditQueueModal/EditQueueModal';
-import { getQueue, getStatus } from '../../redux/serverSlice';
+import { getConsole, getQueue, getStatus } from '../../redux/serverSlice';
 import QueueItem from '../QueueItem/QueueItem';
-import EditItem from '../EditItem/EditItem';
-import ViewResults from '../ViewResults/ViewResults';
 import AddPlanModal from '../AddPlanModal/AddPlanModal';
 import Devices from '../Devices/Devices';
-import { Copy, ArrowDown, ArrowUp, Trash2, Repeat, PlayCircle, Play, StopCircle, Trash, Plus } from 'react-feather';
-import '../Scrollbar/secscroll.css';
+import { Repeat, PlayCircle, StopCircle, Trash, XCircle } from 'react-feather';
+import ServerCalls from "../../redux/serverCalls";
 
 function QueueConsole() {
     const dispatch = useDispatch();
-    const [currentPlan, setCurrentPlan] = useState(null);
+    //Get the data for the queue and status from the redux store
     const { queue, status } = useSelector(state => state.server);
-    const [ refresh, setRefresh] = useState(false);
-    const [checkedList, setCheckList] = useState([]);
-    const [isHover, setIsHover] = useState([]);
+    const [ error, setError] = useState(null);
 
+    //Value to control hover state of the buttons
     const [ hoverButtons, setHoverButtons ] = useState({
         play: false,
         stop: false,
         clear: false,
         loop: false,
+        cancel: false,
     });
-
+    //Value to control when the tooltip is open 
     const [tooltipOpen, setTooltipOpen] = useState({
         clear: false, 
         play: false,
         stop: false,
         cancel: false,
         loop: false,
+        cancel: false,
     });
-
+    //Function to set the tooltip open or close
     const toggleTooltip = (name) => {
         setTooltipOpen({...tooltipOpen, [name]: !tooltipOpen[name]});
     };
 
-    useEffect(() => {
-        (async () => {
-        const val = await dispatch(getQueue());
-        if (val.payload.queue.success) {
-            const arr = val.payload.queue.items.map(() => {
-                return {copyHover: false, upHover: false, downHover: false, deleteHover: false, playHover: false};
-            });
+    //Whenthis function is called, it updates the redux store with the new information from the api regarding the console, status, queue
+    const refreshEverything = () => {
+        dispatch(getQueue());
+        dispatch(getStatus());
+        dispatch(getConsole());
+    };
 
-            setIsHover([...arr]);
-        }
-         })();
-    }, [refresh]);
-
-
+    //Function to clear the queue
     const clearQueue = async () => {
-        try {
-          const url = 'http://localhost:3001/queue/clear';
-      
-          const response = await axios.post(url);
-          console.log(response.data);
-          setRefresh(!refresh);
-        } catch (error) {
-          console.error(error);
-        }
-    };
 
-    const removeQueueItem = async (item) => {
-        try {
-            const url = 'http://localhost:3001/queue/delete';
-            const requestData = {
-              uid: item.item_uid
-            };
+        const { data, error } = await ServerCalls.clearQueue();
         
-            const response = await axios.post(url, requestData);
-            console.log(response.data);
-          } catch (error) {
-            console.error(error);
-          }
-        setRefresh(!refresh);
-    };
-
-    const moveQueueItem = async (item, index, moveType) => {
-        console.log("here");
-        try {
-            const url = 'http://localhost:3001/queue/move';
-            let newindex = null;
-            if (moveType === 'UP') {
-                newindex = index - 1;
-            } else if (moveType === 'DOWN') {
-                newindex = index + 1;
-            }
-            const payload = {
-                uid: item.item_uid,
-                pos_dest: newindex
-            };
+        if (data?.queueClear?.success) {
+            refreshEverything();
+        }
+        setError(error);
         
-            const response = await axios.post(url, payload);
-            console.log(response.data);
-            setRefresh(!refresh);
-            setCurrentPlan(null);
-        } catch (error) {
-          console.error(error);
-        }
-      };
-    const printParama = (args) => {
-        return Object.entries(args)
-        .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-        .join(", ");
-    };
-    const isInArr = (item) => {
-        const isIncluded = checkedList.includes(item);
-        return isIncluded;
     };
 
-    const handleChecked = (e) => {
-        const { checked, name, id } = e.target;
-        let arr = [...checkedList];
-        //let val = {...queue?.queue?.items[name], index: name};
-        if (checked) {
-            arr.push(queue?.queue?.items[name]);
-        } else {
-            const index = arr.indexOf(queue?.queue?.items[name]);
-            if (index !== -1) {
-                arr.splice(index, 1);
-            }
-        }
-        setCheckList([...arr]);
-    };
-
-    const handleIsHover = (index, value, type) => {
-        let arr = [...isHover];
-        arr[index][type] = value;
-        setIsHover([...arr]);
-    };
-
-    const duplicateItem = async (obj) => {
-        //after_uid
-        const url = 'http://localhost:3001/queue/add';
-        //defining item to be added to the queue
-        const item = {
-            name: obj.name,
-            item_type: obj.item_type,
-            kwargs: obj?.kwargs,
-            args: obj?.args,
-        };
-        //Want duplicated item to be added after the original item
-        const response = await axios.post(url, {after_uid: obj.item_uid, item});
-        if (response.status === 200) {
-            dispatch(getQueue());
-        }
-    };
-
+    //Function to toggle the toop
     const switchLoop = async (e) => {
-        console.log("loop: ", e);
-        //const { checked } = e.target;
-        const url = 'http://localhost:3001/queue/loop';
-        const response = await axios.post(url, {mode: {loop: !status?.status?.plan_queue_mode?.loop}});
-        if (response.status === 200) {
-            dispatch(getStatus());
+        const { data, error } = await ServerCalls.switchLoopQueue({mode: {loop: !status?.status?.plan_queue_mode?.loop}});
+        
+        if (data?.loop?.success) {
+            refreshEverything();
         }
+        setError(error);
     };
 
+    //Function to start the queue
     const startQueue = async () => {
-        try {
-          const url = 'http://localhost:3001/queue/start';
-          const response = await axios.post(url);
-          console.log(response.data);
-        } catch (error) {
-          console.error(error);
+        const { data, error } = await ServerCalls.startQueue();
+        
+        if (data?.queueStart?.success) {
+            refreshEverything();
         }
+        setError(error);
     };
 
+    //Function to stop the queue
     const stopQueue = async () => {
-        try {
-          const url = 'http://localhost:3001/queue/stop';
-          const response = await axios.post(url);
-          console.log(response.data);
-        } catch (error) {
-          console.error(error);
+        const { data, error } = await ServerCalls.stopQueue();
+        
+        if (data?.queueStop?.success) {
+            refreshEverything();
         }
+        setError(error);
+    };
+
+    //Function to cancel the stop request for the queue
+    const cancelStopQueue = async () => {
+        const { data, error } = await ServerCalls.cancelQueue();
+        
+        if (data?.queueCancel?.success) {
+            refreshEverything();
+        }
+        setError(error);
     };
 
     return (
-        <div /*style={{ maxWidth: '580px'}}*/>
+        <div>
             
                     <h5 style={{ textAlign: 'center'}}>Queue <span style={{ fontSize: '.875rem', fontStyle: 'italic'}}>(# of items: {status.status?.items_in_queue})</span></h5>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', marginBottom: '10px', alignItems: 'center'}}>
@@ -235,28 +143,28 @@ function QueueConsole() {
                         
                         <Button disabled={status.status?.running_item_uid} id='startQueueTooltip' onMouseEnter={() => setHoverButtons({...hoverButtons, play: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, play: false})} onClick={startQueue} 
                         style={hoverButtons.play ? {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '40px', 
-    height: '40px',
-    borderRadius: '50%',
-    boxShadow: '0 .5rem 1rem rgba(0,204,0,.25)',
-    background: 'white',
-    border: 'unset',
-    padding: 'unset'
-  }: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '40px', 
-    height: '40px',
-    borderRadius: '50%',
-    boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)',
-    background: 'white',
-    border: 'unset',
-    padding: 'unset'
-  }}><PlayCircle size='20' style={hoverButtons.play ? {color: 'rgb(0,204,0)'} : {color: 'black'}} /></Button>
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '40px', 
+                        height: '40px',
+                        borderRadius: '50%',
+                        boxShadow: '0 .5rem 1rem rgba(0,204,0,.25)',
+                        background: 'white',
+                        border: 'unset',
+                        padding: 'unset'
+                    }: {
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '40px', 
+                        height: '40px',
+                        borderRadius: '50%',
+                        boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)',
+                        background: 'white',
+                        border: 'unset',
+                        padding: 'unset'
+                    }}><PlayCircle size='20' style={hoverButtons.play ? {color: 'rgb(0,204,0)'} : {color: 'black'}} /></Button>
                         <Tooltip
                         placement={'bottom'}
                         isOpen={tooltipOpen.play}
@@ -296,6 +204,37 @@ function QueueConsole() {
                     >
                         Stop Queue
                     </Tooltip>
+                    <Button onClick={cancelStopQueue} disabled={!status.status?.running_item_uid} onMouseEnter={() => setHoverButtons({...hoverButtons,cancel: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, cancel: false})} id='cancelQueueTooltip' 
+                        style={hoverButtons.cancel ? {
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            boxShadow: '0 .5rem 1rem rgba(102,102,0,.25)',
+                            background: 'white',
+                            border: 'unset',
+                            padding: 'unset'
+                        } : {
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: 'white', border: 'unset',
+                            boxShadow: '0 .5rem 1rem rgba(0,0,0,.15)',
+                            padding: 'unset'
+                        }}><XCircle  size={20} style={hoverButtons.cancel ? {color: 'rgb(102,102,0)'} : {color: 'black'}} /></Button>
+                        <Tooltip
+                        placement={'bottom'}
+                        isOpen={tooltipOpen.cancel}
+                        target={'cancelQueueTooltip'}
+                        toggle={() => toggleTooltip('cancel')}
+                    >
+                        Cancel Stop Request
+                    </Tooltip>
                         <Button onClick={switchLoop} onMouseEnter={() => setHoverButtons({...hoverButtons, loop: true})} onMouseLeave={() => setHoverButtons({...hoverButtons, loop: false})} id='loopQueueTooltip' style={hoverButtons.loop || status?.status?.plan_queue_mode?.loop ? {
     display: 'inline-flex',
     alignItems: 'center',
@@ -325,7 +264,7 @@ function QueueConsole() {
                         Enable Queue Loop
                     </Tooltip>              
                     </div>
-                    <Row className="scrollbox" style={{ maxHeight: '450px', overflowY: 'scroll'}}>
+                    <Row style={{ maxHeight: '450px', overflowY: 'auto'}}>
                         
                         {
                                     queue?.queue?.items?.map((item, index) => {
@@ -334,8 +273,14 @@ function QueueConsole() {
                                         )
                                     })
                         }
-                            </Row>
-                
+                    </Row>
+                    {error !== null && <Row>
+                        <Col>
+                            <p style={{ color: 'red', textAlign: 'center'}}>
+                                Error: {error}
+                            </p>
+                        </Col>
+                    </Row>}
         </div>
     );
 };

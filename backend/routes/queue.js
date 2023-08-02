@@ -180,27 +180,6 @@ router.get("/runs/open", async (req, res, next) => {
         next(error)
     }
 })
-/*
-router.get("/get/item", async (req, res, next) => {
-    try {
-        console.log("reqBsta: ", req.body);
-        let val = null;
-        const params = {
-            param1: req.query.param1
-        };
-        const value = await axios.get(`http://otz.xray.aps.anl.gov:60610/api/queue/item/get`, {
-            params: {
-              uid: req.query.param1,
-            },
-          });
-        if (value.status === 200) {
-            val = value.data;
-        }
-        console.log("value: ", value);
-        return res.status(200).json({ item: val, id: req.query.param1 })
-    } catch(error) {
-        next(error)
-    }
-})*/
+
 
 module.exports = router;

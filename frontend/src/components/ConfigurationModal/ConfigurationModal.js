@@ -13,7 +13,6 @@ import {
 } from 'reactstrap';
 import { useConsoleConfig } from '../../redux/configContext';
 import InfoIcon from '../InfoIcon/InfoIcon';
-import axios from 'axios';
 
 function ConfigurationModal() {
   const [modal, setModal] = useState(false);
@@ -36,7 +35,6 @@ function ConfigurationModal() {
     let submit = true;
     let errorValue = {...error};
     if (consoleValue === '' || !Number.isInteger(Number(consoleValue)) || Number(consoleValue) < 1 || consoleValue === null || consoleConfig === undefined) {
-        console.log("here: ", Number(consoleValue));
         errorValue.console = true;
         submit = false;
     }
@@ -49,8 +47,6 @@ function ConfigurationModal() {
     if (value) {
         updateConsoleConfig({console: Number(consoleValue)});
         setModal(!modal);
-    } else {
-        console.log("can't submit");
     }
   };
 
@@ -59,16 +55,6 @@ function ConfigurationModal() {
     setError(initialError);
     setModal(!modal);
   };
-
-  const getPlans = async () => {
-    try {
-        const url = 'http://otz.xray.aps.anl.gov:60610/api/console_output';
-        const response = await axios.get(url);
-        console.log(response.data);
-      } catch (error) {
-        console.error(error);
-      }
-  }
 
   return (
     <div>
@@ -82,8 +68,7 @@ function ConfigurationModal() {
         <Modal isOpen={modal}>
             <ModalHeader style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>Configuration Settings</ModalHeader>
                 <ModalBody>
-                    <Button onClick={getPlans}>Print</Button>
-                    {/*<Button onClick={() => console.log("count: ", consoleValue)}>Reset Changes</Button>*/}
+            
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end'}}>
                         <p>Console Output Refresh Timer: Every </p>
                         <Input

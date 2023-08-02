@@ -1,45 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Collapse, 
-    Button, 
-    CardBody, 
+    Button,  
     Modal,
     ModalFooter,
     ModalHeader,
     ModalBody,
-    Card, 
     Table,
-    Row,
     Input,
-    Label,
-    InputGroup,
-    InputGroupText,
     FormGroup,
-    Tooltip
  } from 'reactstrap';
+import ServerCalls from "../../redux/serverCalls";
 import { useDispatch, useSelector } from 'react-redux';
-import { getPlans, getDevices, getQueue } from '../../redux/serverSlice';
+import { getQueue } from '../../redux/serverSlice';
 import Select from 'react-select';
-import axios from 'axios';
 import InfoIcon from '../InfoIcon/InfoIcon';
-import { Edit, Info } from 'react-feather';
+import { Edit } from 'react-feather';
+import CreatableSelect from 'react-select/creatable';
 function EditItem({ queueItem }) {
-    //TODO: instead of disaptch the consoluid check just use the axios api call
-    //TODO: fix how the data is being displayed espically in the input sections cause they have quotes
-
-    //Add Error checking to make sure that all required fields are filled out and if they aren't disable add button
     const dispatch = useDispatch(); 
     const [currentPlan, setCurrentPlan] = useState(null);
     const [modal, setModal] = useState(false); //Open modal
-    const [ isHover, setHover] = useState(false);
-    const [ planNames, setPlanNames ] = useState([]); //Get Plan names for select dropdown
-    
-    const [ currentPlanName, setCurrentPlanName] = useState(null); //set the current plan name
-    const { plans, devices } = useSelector(state => state.server);
+    const [ isHover, setHover] = useState(false); //set the hover state for the buttons
+    const { plans, devices } = useSelector(state => state.server); //gets the device and plan data from redux
     const [check, setCheck] = useState({}); //lists which parameters are edited and which ones arent
     const [placeHolderValue , setPlaceHolderValues] = useState({}); //sets the placeholder values for the dealt params
-    const [planValues, setPlanValues] = useState({});
+    const [planValues, setPlanValues] = useState({}); //Value which will hold the parameter values
     const [deviceNames, setDevicesNames] = useState([]); //gets devices names for the dectors section
+    const parameterNames = plans?.plans?.plans_allowed[queueItem.name]?.parameters.map(item => item.name); //gets list of parameters for plan
     const initialError = {
         status: false,
         message: ''
@@ -47,8 +34,8 @@ function EditItem({ queueItem }) {
     const [error, setError] = useState(initialError);
     const [planError, setPlanError] = useState({});
 
+    //if modal is closed reset everything
     const handleClose = () => {
-        console.log("here");
         setModal(!modal);
         setCurrentPlan(null);
         setError(initialError);
@@ -57,26 +44,25 @@ function EditItem({ queueItem }) {
         setPlanValues({});
         setPlanError({});
     };
+
+      
     const toggle = () => {
-        console.log("plans: ", plans.plans.success);
-        console.log("mo: ", modal);
         if (!modal) {
-    
             if (plans.plans.success) {
-                console.log("here")
                 //Gets the plan details of the current plan that is being edited
                 setCurrentPlan(plans?.plans.plans_allowed[queueItem.name]);
                 let obj = {};
                 let tempPlace = {};
                 let tempValue = {};
                 let tempError = {};
-                plans.plans.plans_allowed[queueItem.name].parameters.forEach(item => {
-                    //console.log("item: ", item);
-                    //If no default then its locked
+                //loops through the list of parameters for plan
+                plans.plans.plans_allowed[queueItem.name].parameters.forEach((item, index) => {
+                    //If no default then its locked, set its value as its default
                     if (item.hasOwnProperty('default')) {
                         obj[item.name] = {check: false, default: false};
                         tempPlace[item.name] = `${item.default} (Default Value)`;
                     } else {
+                        //if its not default then set the value to empty
                         if (item.name === 'args') {
                             obj[item.name] = {check: false, default: false};
                         } else {
@@ -85,31 +71,73 @@ function EditItem({ queueItem }) {
                         tempPlace[item.name] = `Enter a Value`;
                         tempValue[item.name] = '';
                     }
+                    
+
                     if (queueItem.kwargs?.hasOwnProperty(item.name)) {
                         //get value thats already there
                         if (item.name === 'detectors') {
-                            //console.log("val: ", queueItem.kwargs[item.name]);
                             const newDevices = queueItem.kwargs[item.name].map(key => ({ id: key }));
                             tempValue[item.name] = newDevices;
                         } else {
-                            tempValue[item.name] = JSON.stringify(queueItem.kwargs[item.name]);
+                            //const valueJ = JSON.stringify(queueItem.kwargs[item.name]);
+                            tempValue[item.name] = JSON.stringify(queueItem.kwargs[item.name] === null ? 'None' : queueItem.kwargs[item.name]);
+                            //tempValue[item.name] = queueItem.kwargs[item.name];
+                            //tempValue[item.name] = JSON.parse(valueJ?.message);
                         }
                         
-                        
+                        //if it already has a value check its edit box
                         obj[item.name] = {...obj[item.name], check: true};
                     }
-                    
+
+                    //if the plan has args then check the box for args
+                    if (queueItem?.args?.length > 0) {
+                        obj['args'] = {...obj['args'], check: true};
+                    }   
+                    //set the error value to false
                     tempError[item.name] = false;
                 });
-                //console.log("valuesf: ", tempValue);
+                
+                const argsChecker = plans.plans.plans_allowed[queueItem.name].parameters.filter(planItem => planItem.name === 'args');
+                //Checking if args are a param
+                //Finding the index of args 
+                const indexArgs = parameterNames.indexOf('args');
+                if (argsChecker?.length > 0 && indexArgs !== -1 && queueItem?.args?.length > 0) {
+                    //gets list of parameters that are before the args
+                    const firstPart = parameterNames.slice(0, indexArgs);
+                    //gets the corresponding list of values in args list
+                    const slicedQueueArgs = queueItem?.args.slice(0, indexArgs);
+                    //gets the value for args
+                    const argsValues = queueItem?.args.slice(indexArgs);
+                
+                    firstPart.map((planI, indexI) => {
+                        //map the corresponding values to its respective parameter
+                        if (planI === 'detectors') {
+                            const newDevices = slicedQueueArgs[indexI].map(key => ({ id: key }));
+                            tempValue[planI] = newDevices;
+                        } else {
+                            //tempValue[planI] = JSON.stringify(slicedQueueArgs[indexI])//.replace(/"/g, "");
+                            //tempValue[planI] = slicedQueueArgs[indexI];
+                            tempValue[planI] = JSON.stringify(slicedQueueArgs[indexI] === null ? 'None' : slicedQueueArgs[indexI]);
+                        }
+                    });
+                    
+                    // Convert the array to the desired string format
+                    if (argsValues.length > 0) {
+                        const result = `(${argsValues.map(item => JSON.stringify(item)).join(', ')})`;
+                        tempValue['args'] = result;
+                    } else {
+                        obj['args'] = {...obj['args'], check: false};
+                    }
+                    
+                }
                 setPlanError({...tempError});
                 setPlanValues({...tempValue});
                 setPlaceHolderValues(tempPlace);
                 setCheck(obj);
-    
             }       
             
             if (devices?.devices?.success) {
+                //filter through the devices and get rid of any devices that has a classname that includes catalog
                 const filteredList = devices?.deviceList?.filter(obj => !obj.classname.toLowerCase().includes('catalog'));
                 const newArr = filteredList.map(item => { return {id: item.name}});
                 setDevicesNames(newArr);
@@ -117,62 +145,18 @@ function EditItem({ queueItem }) {
         
         }
         setModal(!modal);
-        //setIsOpen(!isOpen);
     };
-    /*useEffect(() => {
-        if (plans.plans.success) {
-            //Gets the plan details of the current plan that is being edited
-            setCurrentPlan(plans?.plans.plans_allowed[queueItem.name]);
-            let obj = {};
-            let tempPlace = {};
-            let tempValue = {};
-            let tempError = {};
-            plans.plans.plans_allowed[queueItem.name].parameters.forEach(item => {
-                //If no default then its locked
-                if (item.hasOwnProperty('default')) {
-                    obj[item.name] = {check: false, default: false};
-                    tempPlace[item.name] = `${item.default} (Default Value)`;
-                } else {
-                    obj[item.name] = {check: true, default: true};
-                    tempPlace[item.name] = `Enter a Value`;
-                    tempValue[item.name] = '';
-                }
-                if (queueItem.kwargs?.hasOwnProperty(item.name)) {
-                    //get value thats already there
-                    tempValue[item.name] = queueItem.kwargs[item.name];
-                    obj[item.name] = {...obj[item.name], check: true};
-                }
-                
-                tempError[item.name] = false;
-            });
-            setPlanError({...tempError});
-            setPlanValues({...tempValue});
-            setPlaceHolderValues(tempPlace);
-            setCheck(obj);
-
-        }       
-        
-
-        if (devices.length === 0) {
-            dispatch(getDevices());
-        } else {
-            if (devices?.devices?.success) {
-                const newDevices = Object.keys(devices.devices.devices_allowed).map(key => ({ id: key }));
-                //console.log("new: ", newDevices);
-                setDevicesNames(newDevices);
-            }
-        }
-    }, []);*/
-
+   
+    //function to handle checking the edit 
     const handleChecked = (e) => {
         const { checked, name, id } = e.target;
-        console.log("n: ", name);
-        
+    
         let tempValue = {...planValues}; //current plan values
-        let tempError = {...planError};
+        let tempError = {...planError}; //current error values
+
+        //Checks whether a paramter has a default value
         const val = plans.plans.plans_allowed[queueItem.name].parameters[id].default;
-        //console.log("valPla: ", plans.plans.plans_allowed[]);
-        
+        //Changes current value to default value when text input is enabled
         if (checked) {  
             tempValue[name] = val === 'None' ? '' : val;
         } else {
@@ -185,6 +169,7 @@ function EditItem({ queueItem }) {
         setCheck({...check, [name]: {...check[name], check: checked}});
     };
 
+    //function to handle changing the input section for the parameter
     const handleChange = (e) => {
         //Gets the name and value of each input section for each parameter
         const { value, name } = e.target;
@@ -195,16 +180,14 @@ function EditItem({ queueItem }) {
         } else {
             setPlanError({...planError, [name]: false});
         }
+        //const tempVal = value.replace(/"/g, "");
         setPlanValues({...planValues, [name]: value});
     };
 
+    //function that handles the selection of the detectors
     const handleSelectDetectors = (e) => {
-        //Handles the selection of the detectors
         //if a detector is selected the detector list is updated
-        console.log("goo: ", e);
         if (e !== null && e.length !== 0) {
-            //const arr = e.map((item) => item.id);
-            //console.log("arr: ", arr);
             //If the detector list has at least one value unset any error
             setPlanError({...planError, detectors: false});
             setPlanValues({...planValues, detectors: e});
@@ -215,12 +198,12 @@ function EditItem({ queueItem }) {
         }
     };
 
+    //function that checks to see if all of the parameters that are checked have a value
     const errorChecker = () => {
-        //Checks to see if all of the parameters that are checked have a value
         let tempError = {...planError};
         let submit = true;
         for (let key in planValues) {
-            if (check[key]) {
+            if (check[key].check) {
                 //Makes sure that were only checking for parameters that are checked and required to be filled out
                 //Checks if the required parameters are filled out and if not set the error to true
                 if (key === 'detectors' && (planValues['detectors'].length === 0 || planValues['detectors'] === '')) {
@@ -247,34 +230,176 @@ function EditItem({ queueItem }) {
         return submit;
     };
 
+    //function to submit changes to the api
     const updateItem = async () => {
         const canSubmit = errorChecker();
         if (canSubmit) {
-            const url = 'http://localhost:3001/queue/update';
-            let tempArgs = {};
-            //getting rid of the parameters that aren't checked anymore
-            Object.entries(planValues).forEach(([key, value]) => {
-                if (check[key].check) {
-                    if (key === 'detectors') {
-                        const arr = value.map((item) => item.id);
-                        tempArgs[key] = arr;
-                    } else {
-                        if (isNaN(value)) {
-                            tempArgs[key] = value;
-                        } else {
-                            //turn value into a number
-                            tempArgs[key] = Number(value);
-                        }
-                    }
-                }
-            });
-            const stuff = {...queueItem, kwargs: {...tempArgs}}
-            const response = await axios.post(url, stuff);
-            console.log("Response: ", response);
-            setModal(!modal);
-            dispatch(getQueue());
-        }
+            try {
+                let stuff = {};//Value we will be submitting to the api
+                //checks if args is a parameter and if its being used
+                const argsChecker = plans.plans.plans_allowed[queueItem.name].parameters.filter(planItem => planItem.name === 'args');
+                if (argsChecker?.length > 0 && check['args'].check) 
+                {
+                        //Finding the index of args 
+                        const indexArgs = parameterNames.indexOf('args');
+                        let tempArgsP = [];
+                        let tempArgs = {};
+                        if (argsChecker?.length > 0 && indexArgs !== -1) {
+                            //There is an args
+                            //Gets a array of parameters before the args parameter
+                            const firstPart = parameterNames.slice(0, indexArgs);
+                            //maps through the list of parameters and pushes it to a array, since the args parameter is a array
+                            firstPart.map(item => {
+                                if (item === 'detectors') {
+                                    //checks if the parameter is a detector
+                                    const arr = planValues[item].map((item) => item.id);
+                                    tempArgsP.push(arr);
+                                } else {
+                                    //if it isn't try parsing it and putting in the appropriate value
+                                    try {
+                                        tempArgsP.push(JSON.parse(planValues[item]));
+                                    } catch (error) {
+                                        try {
+                                            tempArgsP.push(planValues[item]);
+                                        } catch (errorAfter) {
+                                            setError({
+                                                status: true,
+                                                message: `${errorChecker}`
+                                            });
+                                        }
+                                    }
+                                    
+                                }
+                            
+                            })
+                            let strValues = [];
+                            const chars = planValues['args'].split('');
+                            const openingParenthesesCount = chars.filter(char => char === '(').length;
+                            const closingParenthesesCount = chars.filter(char => char === ')').length;
+                            const openingBracketCount = chars.filter(char => char === '[').length;
+                            const closingBracketCount = chars.filter(char => char === ']').length;
 
+
+                            //for the values that may start with these characters, strip them then divide the string
+                            if ((planValues['args'].startsWith("(") 
+                            && planValues['args'].endsWith(")")
+                            && openingParenthesesCount === 1 
+                            && closingParenthesesCount === 1) 
+                             ||
+                            (planValues['args'].startsWith("[") 
+                            && planValues['args'].endsWith("]")
+                            && openingBracketCount === 1 
+                            && closingBracketCount === 1)
+                            ) {
+                                strValues = planValues['args'].slice(1, -1).split(', ');
+                            }
+                             else {
+                                strValues = planValues['args'].split(', ');
+                            }
+                            strValues.map((item) => {
+                                //parse the values
+                                try {
+                                    if ((item.startsWith('"') && item.endsWith('"'))) {
+                                            tempArgsP.push(item.slice(1, -1));
+                                        } else if (!isNaN(item)) {
+                                            tempArgsP.push(parseFloat(item));
+                                        } else {
+                                            tempArgsP.push(JSON.parse(item));
+                                        }
+                                } catch (error) {
+                                    try {
+                                        tempArgsP.push(item);
+                                    } catch (errorAfter) {
+                                        setError({
+                                            status: true,
+                                            message: `${errorChecker}`
+                                        });
+                                    }
+                                    
+                                }
+                                
+                            });
+                            //Parameters that come after the args
+                            const secondPart = parameterNames.slice(indexArgs + 1);
+                            
+                            secondPart.map((itemName) => {
+                                if (check[itemName].check) {
+                                    if (itemName === 'detectors') {
+                                        const arr = planValues[itemName].map((item) => item.id);
+                                        tempArgs[itemName] = arr;
+                                    } else {
+                                        if (isNaN(planValues[itemName])) {
+                                            try {
+                                                tempArgs[itemName] = JSON.parse(planValues[itemName]);
+                                            } catch (error) 
+                                            {
+                                                try {
+                                                    tempArgs[itemName] = planValues[itemName];
+                                                } catch (secondError) {
+                                                    setError({
+                                                        status: true,
+                                                        message: `${secondError}`
+                                                    });
+                                                }
+                                            }
+                                            
+                                        } else {
+                                            //turn value into a number
+                                            tempArgs[itemName] = Number(planValues[itemName]);
+                                        }
+                                    }
+                                }
+                            });
+                            stuff = {...queueItem, kwargs: {...tempArgs}, args: [...tempArgsP]};
+                        }
+                    
+                    
+                } else {
+                    let tempArgs = {};
+                    //getting rid of the parameters that aren't checked anymore
+                    Object.entries(planValues).forEach(([key, value]) => {
+                        if (check[key].check) {
+                            if (key === 'detectors') {
+                                const arr = value.map((item) => item.id);
+                                tempArgs[key] = arr;
+                            } else {
+                                if (isNaN(value)) {
+                                    try {
+                                        tempArgs[key] = JSON.parse(value);
+                                    } catch (error) {
+                                        //const val = value.replace(/'/g, '"').replace(/`/g, '"');
+                                        tempArgs[key] = value
+                                    }
+                                
+                                } else {
+                                    //turn value into a number
+                                    tempArgs[key] = Number(value);
+                                }
+                            }
+                        }
+                    });
+                    stuff = {...queueItem, kwargs: {...tempArgs}, args: []};
+                }
+                
+                
+                const { data, error } = await ServerCalls.editItem(stuff);
+                if (error) {
+                    setError({
+                        status: true,
+                        message: `${error}`
+                    });
+                } else {
+                    setModal(!modal);
+                    setError(initialError);
+                    dispatch(getQueue());
+                }
+                
+            } catch (err) {
+                setError({
+                    status: true, 
+                    message: `Oops, an error occurred. Please review the form and try again. \n ${err}`});
+            }
+        }
         
     }
 
@@ -286,11 +411,18 @@ function EditItem({ queueItem }) {
         })
     };
 
+    //Function to add on new device to list of devices
+    const handleCreate = (e) => {
+        let temp = [...deviceNames];
+        temp.push({id: e});
+        setDevicesNames([...temp]);
+    };
+
     return (
         <div>
             <Edit style={isHover ? {color: '#0d6efd'} : {color: 'black'}} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={toggle}/>
         <Modal isOpen={modal} toggle={toggle} size={'lg'} backdrop={'static'}>
-            <ModalHeader toggle={toggle}>Edit Plan to Queue</ModalHeader>
+            <ModalHeader toggle={toggle}>Edit Plan</ModalHeader>
             <ModalBody>
 
                         <h5 style={{ textAlign: 'center', marginBottom: '10px', marginTop: '10px'}}>
@@ -302,8 +434,6 @@ function EditItem({ queueItem }) {
                             <strong>Description:</strong> {currentPlan?.description}
                             </h6> : null
                         }
-                        {/*<Button onClick={() => console.log("it: ", queueItem)}>Click</Button>
-                        <Button onClick={() => console.log("newitem: ", queueItem)}>ClickMe</Button>*/}
                         <Table striped>
                             <thead>
                                 <tr>
@@ -324,7 +454,7 @@ function EditItem({ queueItem }) {
                                         return (
                                             <tr>
                                                 <th style={{ display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                                    {item.name}
+                                                    {item.name === 'args' ? `*${item.name}` : item.name}
                                                     
                                                     {item.hasOwnProperty('description') && <InfoIcon header={item.name} content={item.description} id={`tooltip${index}`} />}
                                                 </th>
@@ -342,7 +472,7 @@ function EditItem({ queueItem }) {
                                                 </th>
                                                 <th style={{ width: '450px'}}>
                                                 {item.name === 'detectors' ? 
-                                                <Select
+                                                <>{/*<Select
                                                     value={planValues[item.name]}
                                                     options={deviceNames}
                                                     getOptionValue={(options) => options['id']}
@@ -351,7 +481,20 @@ function EditItem({ queueItem }) {
                                                     isMulti={true}
                                                     onChange={handleSelectDetectors}
                                                     styles={planError['detectors'] && errorDropDown}
-                                                /> :
+                                        />*/}
+                                                <CreatableSelect
+                                                    options={deviceNames}
+                                                    getOptionValue={(options) => options['id']}
+                                                    getOptionLabel={(options) => options['id']}
+                                                    isClearable={true}
+                                                    isMulti={true}
+                                                    value={planValues[item.name]}
+                                                    onCreateOption={handleCreate}
+                                                    getNewOptionData={inputValue => ({ id: inputValue })}
+                                                    onChange={handleSelectDetectors}
+                                                    styles={planError['detectors'] && errorDropDown}
+                                                /></>
+                                                 :
                                                     <Input 
                                                         value={planValues[item.name] === null? '' : planValues[item.name]} //Fix so that it shows array
                                                         readOnly={!check[item.name].check}

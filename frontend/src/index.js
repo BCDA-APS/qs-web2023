@@ -8,13 +8,11 @@ import store from './redux/store';
 import ErrorBoundary from './ErrorBoundary';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
     <ErrorBoundary>
       <Provider store={store}>
         <App />
       </Provider>
     </ErrorBoundary>  
-  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

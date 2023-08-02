@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import ServerCalls from "./serverCalls";
-//Add badges to default values <= design idea
+
 export const getPlans = createAsyncThunk('getPlans', async () => {
     const { data, error } = await ServerCalls.getPlans();
     if (error) {
@@ -14,7 +14,6 @@ export const getDevices = createAsyncThunk('getDevices', async () => {
     if (error) {
       throw new Error('Failed to fetch devices'); // Throw an error if the request fails
     }
-    console.log("data:" , data);
     const newValue = Object.entries(data.devices.devices_allowed).map(([name, obj]) => ({ name, ...obj }));
 
     return {...data, deviceList: newValue};

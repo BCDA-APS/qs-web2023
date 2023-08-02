@@ -6,11 +6,13 @@ import { ConfigProvider } from './redux/configContext';
 import './App.css';
 function App() {
   return (
-    <ConfigProvider>
-      <NavBar>
-        <Layout />
-      </NavBar>
-    </ConfigProvider>
+    <>
+      <ConfigProvider>
+        <NavBar>
+          <Layout />
+        </NavBar>
+      </ConfigProvider>
+    </>
   );
 }
 

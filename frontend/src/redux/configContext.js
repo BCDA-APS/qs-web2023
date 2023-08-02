@@ -1,12 +1,12 @@
 import React, { useState, useContext } from "react";
 
+//Context that would be used to set the timer for the api calls for the console
 const ConfigContext = React.createContext();
 
 export const initialConsoleConfig = {console: 3};
 
 export const ConfigProvider = ({ children }) => {
     const [ consoleConfig, setConsoleConfig ] = useState(initialConsoleConfig);
-    console.log("con: ", consoleConfig);
     return (
         <ConfigContext.Provider 
         value={{consoleConfig,

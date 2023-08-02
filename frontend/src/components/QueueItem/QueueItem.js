@@ -2,27 +2,28 @@ import React, { useState } from 'react';
 import {
     Card,
     CardBody,
-    CardTitle,
     Row,
     Col,
-    Collapse,
-    Popover,
-    PopoverBody,
-    UncontrolledPopover,
     Tooltip
 } from 'reactstrap';
+import ServerCalls from "../../redux/serverCalls";
 import ViewResults from '../ViewResults/ViewResults';
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
 import { getConsole, getHistory, getQueue, getStatus } from '../../redux/serverSlice';
 import EditItem from '../EditItem/EditItem';
-import { MoreVertical, Copy, ArrowDown, ArrowUp, Trash2, Repeat, PlayCircle, Play, StopCircle, Trash, Menu, Edit, ChevronsUp, ChevronsDown } from 'react-feather';
+import { MoreVertical, Copy, ArrowDown, ArrowUp, Play, Trash, ChevronsUp, ChevronsDown } from 'react-feather';
+
 function QueueItem(props) {
     const dispatch = useDispatch();
-    const { queue, status } = useSelector(state => state.server);
-    const [isOpen, setIsOpen ] = useState(false);
+    //Get data from redux regarding the queue and plans
+    const { queue, plans } = useSelector(state => state.server);
+    //Value to handle the state of when a tooltip is open or closed
     const [tooltipOpen, setTooltipOpen] = useState(false);
+    //Function to open or close the tooltip
     const toggleTooltop = () => setTooltipOpen(!tooltipOpen);
+    //Gets list of parameter names for the plan
+    const parameterNames = plans?.plans?.plans_allowed[props.item.name]?.parameters.map(item => item.name);
+    //Value to handle state of hover for buttons
     const [ hoverButtons, setHoverButtons ] = useState({
         up: false,
         down: false,
@@ -32,14 +33,49 @@ function QueueItem(props) {
         copy: false,
         play: false,
     });
+    //Value to handle errors
+    const [ error, setError ] = useState(null);
 
-    const printParama = (args) => {
-        return Object.entries(args)
-        .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-        .join(", ");
+    const replacer = (key, value) => {
+        if (typeof value === 'string' && value.startsWith("'") && value.endsWith("'")) {
+          // If the value is a string enclosed in single quotes, remove the quotes
+          return value.slice(1, -1) === null ? 'None' : value.slice(1, -1);
+        } else {
+          return value === null ? 'None' : value;
+        }
     };
 
+    const printParama = (args) => {
+        let result = [];
+        if (props.item.args?.length > 0) {
+            //uses args
+            const indexArgs = parameterNames?.indexOf('args');
+            const firstPart = parameterNames?.slice(0, indexArgs); // Elements from index 0 to splitIndex - 1
+            const slicedQueueArgs = props.item.args.slice(0, indexArgs);
+            const argsValues = props.item.args.slice(indexArgs);
+            let resultArr = firstPart?.map((planI, indexI) => {
+                return `${planI}: ${JSON.stringify(slicedQueueArgs[indexI])}`;
+            });
 
+            
+            const resultVal = `*args: (${argsValues.map(item => JSON.stringify(item, replacer)).join(', ')})`;
+            if (resultArr) {
+                resultArr?.push(resultVal);
+                result = [...result, ...resultArr];
+            }
+            
+            
+        }
+        
+        const other = Object.entries(args)
+        .map(([key, value]) => `${key}: ${JSON.stringify(value, replacer)}`);
+        
+        result = [...result, ...other].join(', '); 
+        
+        return result;
+    };
+
+    //Updates the redux store, by getting new api data regarding the queue, console, status, and history
     const refreshEverything = () => {
         dispatch(getQueue());
         dispatch(getConsole());
@@ -47,9 +83,9 @@ function QueueItem(props) {
         dispatch(getHistory());
     };
 
+    //Function to move items within a queue
     const moveQueueItem = async (item, index, moveType) => {
         try {
-            const url = 'http://localhost:3001/queue/move';
             let newindex = null;
             if (moveType === 'UP') {
                 newindex = index - 1;
@@ -65,35 +101,36 @@ function QueueItem(props) {
                 pos_dest: newindex
             };
         
-            const response = await axios.post(url, payload);
-            if (response.status === 200) {
+            const { data, error } = await ServerCalls.movePlanInQueue(payload);
+            if (data?.queueMove?.success) {
                 refreshEverything();
             }
-        } catch (error) {
-          console.error(error);
+            setError(error);
+        } catch (err) {
+          setError(err);
         }
     };
 
+    //Function to remove item from the queue
     const removeQueueItem = async (item) => {
         try {
-            const url = 'http://localhost:3001/queue/delete';
             const requestData = {
               uid: item.item_uid
             };
-        
-            const response = await axios.post(url, requestData);
-            if (response.status === 200) {
+            const { data, error } = await ServerCalls.deletePlanFromQueue(requestData);
+
+            if (data?.queueDelete?.success) {
                 refreshEverything();
             }
-          } catch (error) {
-            console.error(error);
+            setError(error);
+          } catch (err) {
+            setError(err);
           }
     };
 
+    //Function to copy items in the queue
     const duplicateItem = async (obj) => {
         try {
-            //after_uid
-            const url = 'http://localhost:3001/queue/add';
             //defining item to be added to the queue
             const item = {
                 name: obj.name,
@@ -102,23 +139,29 @@ function QueueItem(props) {
                 args: obj?.args,
             };
             //Want duplicated item to be added after the original item
-            const response = await axios.post(url, {after_uid: obj.item_uid, item});
-            if (response.status === 200) {
+            const { data, error } = await ServerCalls.addToQueue({after_uid: obj.item_uid, item});
+            if (data?.queue?.success) {
                 refreshEverything();
             }
-        } catch (error) {
-            console.log("error: ", error);
+            setError(error);
+        } catch (err) {
+            setError(err);
         }
         
     };
 
+    //Function to execute the item
     const executeItem = async (item) => {
-        console.log("item: ", item);
-        const url = 'http://localhost:3001/queue/execute';
-        const response = await axios.post(url, {item});
-        if (response.status === 200) {
-            refreshEverything();
+        try {
+            const { data, error } = await ServerCalls.executeItemInQueue({item});
+            if (data?.execute?.success) {
+                refreshEverything();
+            }
+            setError(error);
+        } catch (err) {
+            setError(err);
         }
+        
     };
 
     return (
@@ -160,7 +203,13 @@ function QueueItem(props) {
                     </Tooltip>
                     </Col>
                 </Row>
-
+                {error !== null && <Row>
+                <Col>
+                    <p style={{ color: 'red'}}>
+                        Error: {error}
+                    </p>
+                </Col>
+                </Row>}
             </CardBody>
         </Card>
     )

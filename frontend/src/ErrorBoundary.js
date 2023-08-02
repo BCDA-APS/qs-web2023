@@ -11,7 +11,6 @@ class ErrorBoundary extends Component {
   }
 
   render() {
-    console.log("er: ", this.state);
     if (this.state.hasError) {
       // Render your custom error screen here
       return (

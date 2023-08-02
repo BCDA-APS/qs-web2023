@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Collapse, 
     Button, 
     CardBody, 
     Modal,
-    ModalFooter,
     ModalHeader,
     ModalBody,
     Card, 
@@ -12,22 +10,15 @@ import {
     Row,
     Input,
     Label,
-    InputGroup,
-    InputGroupText,
     FormGroup,
     Col,
     Tooltip
  } from 'reactstrap';
-import { Check, X } from 'react-feather';
-import axios from 'axios';
+import { Check, X, Package } from 'react-feather';
 import { useDispatch, useSelector } from 'react-redux';
 import { getDevices } from '../../redux/serverSlice';
-import { Search, Package } from 'react-feather';
-import '../Scrollbar/secscroll.css';
 
 function Devices() {
-    //When selecting a dectetor have a multi select where users can select one or more dectors from the list of devices
-    //parse it into the list
     const dispatch = useDispatch(); 
     const [modal, setModal] = useState(false);
     const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -52,6 +43,8 @@ function Devices() {
     useEffect(() => {
         if (devices?.deviceList) {
         const filteredItems = devices?.deviceList?.filter((item) => {
+            //Using the input values from the filter section, searches through list
+            //of devices that fit the criteria
             let check = {
                 search: false,
                 module: false,
@@ -109,8 +102,7 @@ function Devices() {
             }
 
             const valuesArray = Object.values(check);
-            //console.log("arr: ", valuesArray);
-
+            
             if (!valuesArray.includes(false)){
                 return item;
             }
@@ -119,16 +111,14 @@ function Devices() {
     }
     }, [filterValues]);
 
-    //add modules and classname, search by modules and classname
-    //Inlcude check marks and red x's to symbolize the true and false, add a search section to search for names
+
     useEffect(() => {
         (async () => {
         if (devices.length === 0) {
             //Checks to see if the devices state in redux is empty, if it is then we call the function to populate state with devices data
             const val = await dispatch(getDevices());
-            console.log("val de: ", val);
-            if (val.payload.devices.succes) {
-                setCurrentList(val.payload.devices.deviceList);
+            if (val?.payload?.devices.succes) {
+                setCurrentList(val?.payload?.devices.deviceList);
             }
         } else {
             if (devices?.devices?.success) {
@@ -137,12 +127,13 @@ function Devices() {
         }
     })();
     }, []);
+
     //Inlcude a section in filter to list devices that are readable and that arent
     const filterByName = (e) => {
         const { value, id } = e.target;
         setFilterValues({...filterValues, [id]: value});
     };
-
+    //Handle the checkboxes
     const handleChecked = (e) => {
         const { name, id } = e.target;
         setFilterValues({...filterValues, [name]: id});
@@ -378,7 +369,7 @@ function Devices() {
                         </CardBody>
                     </Card>
                     <Card className='shadow' body>
-                        <CardBody className="scrollbox" style={{ maxHeight: '500px', overflowY: 'scroll', height: '100%'}}>
+                        <CardBody style={{ maxHeight: '500px', overflowY: 'scroll', height: '100%'}}>
                         {currentList?.length > 0 ? <Table striped>
                             <thead>
                                 <tr style={{ textAlign: 'center'}}>

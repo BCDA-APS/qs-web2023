@@ -1,39 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Button,
     Row,
     Card,
     CardBody,
+    Col
 } from 'reactstrap';
-import axios from 'axios';
-import { useDispatch, useSelector } from 'react-redux';
-import { getStatus } from '../../redux/serverSlice';
+import { useSelector } from 'react-redux';
 import DestroyEnvironment from '../DestroyEnvironment/DestroyEnvironment';
+import ServerCalls from "../../redux/serverCalls";
 
 function Environment() {
+    //Gets data about status from redux store
     const { status } = useSelector(state => state.server);
-    
+    const [ error, setError ] = useState(null);
 
+    //Function to open the environment
     const openEnvironment = async () => {
-        try {
-          const url = 'http://localhost:3001/environment/open';
-      
-          const response = await axios.post(url);
-          console.log(response.data);
-        } catch (error) {
-          console.error(error);
-        }
+        const { data, error } = await ServerCalls.openEnvironment();
+        setError(error);
     };
 
+    //Function to close the environment
     const closeEnvironment = async () => {
-        try {
-          const url = 'http://localhost:3001/environment/close';
-      
-          const response = await axios.post(url);
-          console.log(response.data);
-        } catch (error) {
-          console.error(error);
-        }
+        const { data, error } = await ServerCalls.closeEnvironment();
+        setError(error);
     };
 
     return (
@@ -52,6 +43,14 @@ function Environment() {
                     <Row style={{ width: '200px', margin: '5px'}}>
                         <DestroyEnvironment />
                     </Row>
+                    {error !== null && 
+                    <Row>
+                    <Col>
+                        <p style={{ color: 'red', textAlign: 'center'}}>
+                            Error: {error}
+                        </p>
+                    </Col>
+                </Row>}
                 </CardBody>
             </Card>
         </div>
